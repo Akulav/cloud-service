@@ -47,11 +47,36 @@ namespace Gateway
 
         }
 
+        public static void send_to_data(string data)
+        {
+
+            TcpClient tcpClient = new TcpClient("localHost", 1300);
+            using (NetworkStream ns = tcpClient.GetStream())
+            {
+
+                using (
+                    BufferedStream bs = new BufferedStream(ns))
+                {
+                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
+                    bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
+                }
+
+            }
+            tcpClient.Close();
+
+        }
+
+
         public static void router(string[] data, string data_string)
         {
             if (data[0]=="signup" || data[0] == "login")
             {
                 send_to_user(data_string);          
+            }
+
+            else if (data[0] == "connect")
+            {
+                send_to_data(data_string);
             }
 
             else

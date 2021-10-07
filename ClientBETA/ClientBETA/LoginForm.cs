@@ -31,6 +31,8 @@ namespace ClientBETA
             string[] data = Communications.listen(13);
             status.Text = StatusCodes.response_codes(data[0]);
             idlabel.Text = data[1];
+
+            Communications.send_data("localhost", 1300, "connect", data[1], null);
         }
 
         private void Client_Load(object sender, EventArgs e)
