@@ -12,28 +12,61 @@ namespace LoginService
         {
             Random rnd = new Random();
             var id = rnd.Next(20, 2000);
-            //string query = $"INSERT INTO [dbo].[Data] (id, username, password) VALUES ('{id}','{username}','{password}')";
-
-            string query = $"IF NOT EXISTS (SELECT * FROM [dbo].[Data] WHERE username = '{username}') BEGIN INSERT INTO [dbo].[Data] (id, username, password) VALUES ('{id}','{username}','{password}') END";
-
             string connectionString = @"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = C:\Users\akula\Documents\users.mdf; Integrated Security = True; Connect Timeout = 30";
+
+            string checkuserquery = $"SELECT COUNT(id)FROM[dbo].[Data] WHERE username = '{username}'";
             SqlConnection connection = new SqlConnection(connectionString);
             connection.Open();
-            SqlCommand cmd = new SqlCommand(query, connection);
-            cmd.ExecuteNonQuery();
+            SqlCommand cmdcheck = new SqlCommand(checkuserquery, connection);
+            string result = cmdcheck.ExecuteScalar().ToString();
+
+            if (result == "1")
+            {
+                DataProcessor.send_response("Username Taken");
+            }
+
+            else
+            {
+                string query = $"INSERT INTO [dbo].[Data] (id, username, password) VALUES ('{id}','{username}','{password}')";
+                SqlCommand cmd = new SqlCommand(query, connection);
+                cmd.ExecuteNonQuery();
+                DataProcessor.send_response("Succesfully signed up");
+            }
+
         }
 
         public static void login(string username, string password)
         {
             string query = $"SELECT COUNT(id)FROM [dbo].[Data] WHERE username = '{username}' AND password = '{password}'";
-
             string connectionString = @"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = C:\Users\akula\Documents\users.mdf; Integrated Security = True; Connect Timeout = 30";
             SqlConnection connection = new SqlConnection(connectionString);
             connection.Open();
-            SqlCommand cmd = new SqlCommand(query, connection);
-            
+            SqlCommand cmd = new SqlCommand(query, connection);        
             string result = cmd.ExecuteScalar().ToString();
-            Console.WriteLine(result);
+            if (result == "1")
+            {
+                DataProcessor.send_response("Logged in");
+            }
+
+            else
+            {
+                DataProcessor.send_response("Wrong data");
+            }
         }
+
+        public static void router(string[] data)
+        {
+            if (data[0] == "signup")
+            {
+                signup(data[1], data[2]);
+            }
+
+            if (data[0] == "login")
+            {
+                login(data[1], data[2]);
+            }
+        }
+
+
     }
 }

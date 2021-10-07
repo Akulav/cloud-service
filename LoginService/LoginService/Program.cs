@@ -33,7 +33,7 @@ namespace LoginService
 
                     for (int i = 0; i < size; i++)
                     {
-                        Console.Write(Convert.ToChar(data[i]));
+                        //Console.Write(Convert.ToChar(data[i]));
                         user_data[i] = Convert.ToChar(data[i]);
                     }
 
@@ -43,7 +43,7 @@ namespace LoginService
 
                     string[] finalData = TextManipulator.wordArray(user_data);
 
-                    Database.login(finalData[0], finalData[1]);
+                    Database.router(finalData);
 
                     client.Close();
                 });
