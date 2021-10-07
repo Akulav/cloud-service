@@ -10,7 +10,7 @@ namespace LoginService
     {
         public static void signup(string username, string password)
         {
-            Random rnd = new Random();
+
             string id = DataProcessor.RandomString(50);
             string connectionString = @"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = C:\Users\akula\Documents\users.mdf; Integrated Security = True; Connect Timeout = 30";
 
@@ -22,35 +22,39 @@ namespace LoginService
 
             if (result == "1")
             {
-                DataProcessor.send_response("Username Taken");
+                DataProcessor.send_response("2", "localhost", 130);
             }
 
             else
             {
-                string query = $"INSERT INTO [dbo].[Data] (id, username, password) VALUES ('{id}','{username}','{password}')";
-                SqlCommand cmd = new SqlCommand(query, connection);
+                string insertuserquery = $"INSERT INTO [dbo].[Data] (id, username, password) VALUES ('{id}','{username}','{password}')";
+                SqlCommand cmd = new SqlCommand(insertuserquery, connection);
                 cmd.ExecuteNonQuery();
-                DataProcessor.send_response("Account Created");
+                DataProcessor.send_response("3","localhost", 130);
             }
 
         }
 
         public static void login(string username, string password)
         {
-            string query = $"SELECT COUNT(id)FROM [dbo].[Data] WHERE username = '{username}' AND password = '{password}'";
+            string checkloginquery = $"SELECT COUNT(id)FROM [dbo].[Data] WHERE username = '{username}' AND password = '{password}'";
+            string getidquery = $"SELECT id FROM [dbo].[Data] WHERE username = '{username}' AND password = '{password}'";
             string connectionString = @"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = C:\Users\akula\Documents\users.mdf; Integrated Security = True; Connect Timeout = 30";
             SqlConnection connection = new SqlConnection(connectionString);
             connection.Open();
-            SqlCommand cmd = new SqlCommand(query, connection);        
+            SqlCommand cmd = new SqlCommand(checkloginquery, connection);        
             string result = cmd.ExecuteScalar().ToString();
             if (result == "1")
             {
-                DataProcessor.send_response("Entered Account");
+                SqlCommand idget = new SqlCommand(getidquery, connection);
+                string id = idget.ExecuteScalar().ToString();
+                Console.WriteLine(id);
+                DataProcessor.send_response("1" +" " + id, "localhost", 130);
             }
 
             else
             {
-                DataProcessor.send_response("Wrong data");
+                DataProcessor.send_response("0", "localhost", 130);
             }
         }
 

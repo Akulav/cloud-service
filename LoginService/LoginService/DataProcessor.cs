@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -11,16 +10,9 @@ namespace LoginService
     class DataProcessor
     {
 
-        public static void send_response(string data)
+        public static void send_response(string data, string ip, int port)
         {
-            /*
-            ServerClientSync sc = new ServerClientSync();
-            sc.ip = IPAddress.Parse("192.168.10.107");
-            sc.send_port = 11001;
-            sc.syncWithClient(data);
-            */
-
-            TcpClient tcpClient = new TcpClient("localHost", 130);
+            TcpClient tcpClient = new TcpClient(ip, port);
             using (NetworkStream ns = tcpClient.GetStream())
             {
 
@@ -35,8 +27,6 @@ namespace LoginService
             tcpClient.Close();
 
         }
-
-
         
         public static string RandomString(int length)
         {
@@ -52,5 +42,6 @@ namespace LoginService
             string[] words = Regex.Matches(str, "\\w+").OfType<Match>().Select(m => m.Value).ToArray();
             return words;
         }
+
     }
 }

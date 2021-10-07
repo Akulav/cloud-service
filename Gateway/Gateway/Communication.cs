@@ -1,7 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 
 namespace Gateway
 {
@@ -44,17 +46,6 @@ namespace Gateway
             tcpClient.Close();
 
         }
-        /*
-        public static string receive_from_client()
-        {
-            ServerClientSync sc = new ServerClientSync();
-            sc.ip = IPAddress.Parse("192.168.10.107");
-            sc.send_port = 11001;
-            sc.receive_port = 11000;
-            string str = sc.syncWithServer();
-            return str;
-        }
-        */
 
         public static void router(string[] data, string data_string)
         {
@@ -66,6 +57,43 @@ namespace Gateway
             else
             {
                 send_to_client(data_string);
+            }
+        }
+
+        public static void listen(int port)
+        {
+            TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
+            tcpListener.Start();
+
+            Console.WriteLine("GATEWAY INITIALIZED...");
+
+            while (true)
+            {
+
+                Socket client = tcpListener.AcceptSocket();
+                Console.WriteLine("Connection accepted.");
+                char[] user_data = new char[999];
+
+                var childSocketThread = new Thread(() =>
+                {
+                    byte[] data = new byte[100];
+                    int size = client.Receive(data);
+                    Console.WriteLine("Recieved data!");
+
+                    for (int i = 0; i < size; i++)
+                    {
+                        user_data[i] = Convert.ToChar(data[i]);
+                    }
+
+                    string str = new string(user_data);
+                    string[] finalData = DataProcessor.wordArray(user_data);
+                    Console.WriteLine(str);
+                    Communication.router(finalData, str);
+
+                    client.Close();
+                });
+
+                childSocketThread.Start();
             }
         }
 

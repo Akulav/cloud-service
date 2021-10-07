@@ -34,6 +34,7 @@ namespace ClientBETA
             this.username = new System.Windows.Forms.TextBox();
             this.password = new System.Windows.Forms.TextBox();
             this.status = new System.Windows.Forms.Label();
+            this.idlabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // signup
@@ -79,11 +80,21 @@ namespace ClientBETA
             this.status.TabIndex = 4;
             this.status.Text = "STATUS";
             // 
+            // idlabel
+            // 
+            this.idlabel.AutoSize = true;
+            this.idlabel.Location = new System.Drawing.Point(12, 668);
+            this.idlabel.Name = "idlabel";
+            this.idlabel.Size = new System.Drawing.Size(18, 13);
+            this.idlabel.TabIndex = 5;
+            this.idlabel.Text = "ID";
+            // 
             // Client
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(645, 690);
+            this.Controls.Add(this.idlabel);
             this.Controls.Add(this.status);
             this.Controls.Add(this.password);
             this.Controls.Add(this.username);
@@ -91,6 +102,7 @@ namespace ClientBETA
             this.Controls.Add(this.signup);
             this.Name = "Client";
             this.Text = "Client";
+            this.Load += new System.EventHandler(this.Client_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -103,6 +115,7 @@ namespace ClientBETA
         private System.Windows.Forms.TextBox username;
         private System.Windows.Forms.TextBox password;
         private System.Windows.Forms.Label status;
+        private System.Windows.Forms.Label idlabel;
     }
 }
 
