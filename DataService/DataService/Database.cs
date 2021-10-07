@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.IO;
 using System.Text;
 
 namespace DataService
@@ -12,6 +13,17 @@ namespace DataService
             if (data[0] == "connect")
             {
                 connect(data[1]);
+            }
+
+            else if (data[0] == "upload")
+            {
+                Console.WriteLine(data.Length);
+                upload(data);
+            }
+
+            else if (data[0] == "download")
+            {
+                download(data[1]);
             }
 
         }
@@ -32,7 +44,46 @@ namespace DataService
                 string insertuserquery = $"INSERT INTO [dbo].[passwords] (id, storage, salt) VALUES ('{id}','1','{salt}')";
                 SqlCommand insertcmd = new SqlCommand(insertuserquery, connection);
                 insertcmd.ExecuteNonQuery();
+
+                DataProcessor.initializeDataSet(id);
             }
         }
+
+        public static void upload(string[] data)
+        {
+            Random rnd = new Random();
+            string filename = Crypto.GenerateRandomAlphanumericString(rnd.Next(50, 150));
+
+            string location = "c:\\cloud\\" + data[1] + "\\" + filename +".wtf";
+            
+            using (StreamWriter writer = new StreamWriter(@location))
+            {
+                writer.WriteLine(data[2]);
+                writer.WriteLine(data[3]);
+                writer.WriteLine(data[4]);
+                writer.Close();
+            }
+            
+        }
+
+        public static void download(string id)
+        {
+            string fileLocation = "c:\\cloud\\" + id + "\\";
+            string[] fileList = Directory.GetFiles(fileLocation);
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < fileList.Length; i++)
+            {
+                string[] data = File.ReadAllLines(fileList[i]);
+                sb.Append(data[0] + " ");
+                sb.Append(data[1] + " ");
+                sb.Append(data[2] + " ");
+            }
+
+            string accounts = sb.ToString();
+            Console.WriteLine(accounts);
+            Communications.send_data("localhost", 130, "downloadservice" ,accounts);
+        }
+
     }
 }

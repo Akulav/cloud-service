@@ -1,0 +1,13 @@
+Make an actual UI
+Prevent user from entering invalid passwords/usernames
+Add Delete Function
+Add Service Discovery
+Add status checkers
+Optimize Data Travel Time (maybe use bytes instead of chars...)
+Encryption / Decryption / Compression
+Task Timeouts
+Separate everything on threads
+Trip if a call fails
+Gateway caches id (no need to call login service each time)
+Multiple Connections (DONE)
+Circuit Breaker

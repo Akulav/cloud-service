@@ -16,11 +16,11 @@ namespace DataService
             {
                 Socket client = tcpListener.AcceptSocket();
                 Console.WriteLine("Connection accepted.");
-                char[] user_data = new char[999];
+                char[] user_data = new char[9999];
 
                 var childSocketThread = new Thread(() =>
                 {
-                    byte[] data = new byte[100];
+                    byte[] data = new byte[1000];
                     int size = client.Receive(data);
                     Console.WriteLine("Recieved data!");
 
@@ -34,7 +34,7 @@ namespace DataService
                     //Console.WriteLine(user_data);
 
                     string[] finalData = DataProcessor.wordArray(user_data);
-
+                    Console.WriteLine(finalData.Length);
                     Database.router(finalData);
 
                     client.Close();

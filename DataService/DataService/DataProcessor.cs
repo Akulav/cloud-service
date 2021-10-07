@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace DataService
@@ -21,6 +20,23 @@ namespace DataService
             string str = new string(input);
             string[] words = Regex.Matches(str, "\\w+").OfType<Match>().Select(m => m.Value).ToArray();
             return words;
+        }
+
+        public static void initializeDataSet(string user)
+        {
+            string root = @"C:\";
+            string storageDir = @"C:\cloud\" + user;
+
+            if (!Directory.Exists(root))
+            {
+                Directory.CreateDirectory(root);
+            }
+
+            if (!Directory.Exists(storageDir))
+            {
+                Directory.CreateDirectory(storageDir);
+            }
+
         }
     }
 }
