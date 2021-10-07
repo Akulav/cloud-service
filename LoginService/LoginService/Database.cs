@@ -11,7 +11,7 @@ namespace LoginService
         public static void signup(string username, string password)
         {
             Random rnd = new Random();
-            var id = rnd.Next(20, 2000);
+            string id = DataProcessor.RandomString(50);
             string connectionString = @"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = C:\Users\akula\Documents\users.mdf; Integrated Security = True; Connect Timeout = 30";
 
             string checkuserquery = $"SELECT COUNT(id)FROM[dbo].[Data] WHERE username = '{username}'";

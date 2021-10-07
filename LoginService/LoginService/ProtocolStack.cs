@@ -9,7 +9,6 @@ namespace LoginService
     class ProtocolStack
     {
         public IPAddress ip;
-        public int receive_port;
         public int send_port;
 
         public String sendData(byte[] buffer)

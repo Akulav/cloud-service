@@ -1,7 +1,5 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Text;
-using System.Threading;
 
 namespace LoginService
 {
@@ -9,7 +7,6 @@ namespace LoginService
     {
         public int connected = 0;
         public IPAddress ip;
-        public int receive_port;
         public int send_port;
 
 
@@ -17,13 +14,9 @@ namespace LoginService
         {
             ProtocolStack ps = new ProtocolStack();
             ps.ip = ip;
-            ps.receive_port = receive_port;
-            ps.send_port = send_port;
-           
-                
+            ps.send_port = send_port;        
             byte[] sendbuf = Encoding.ASCII.GetBytes(data);
             sendDataRetrans(sendbuf);
-           
         }
 
 
@@ -32,14 +25,8 @@ namespace LoginService
         {
             ProtocolStack ps = new ProtocolStack();
             ps.ip = ip;
-            ps.receive_port = receive_port;
             ps.send_port = send_port;
-
-            string[] response;
-
-            ps.sendData(information);
-            
-
+            ps.sendData(information);       
         }
 
     }
