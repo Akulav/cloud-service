@@ -30,7 +30,7 @@ namespace LoginService
                 string query = $"INSERT INTO [dbo].[Data] (id, username, password) VALUES ('{id}','{username}','{password}')";
                 SqlCommand cmd = new SqlCommand(query, connection);
                 cmd.ExecuteNonQuery();
-                DataProcessor.send_response("Succesfully signed up");
+                DataProcessor.send_response("Account Created");
             }
 
         }
@@ -45,7 +45,7 @@ namespace LoginService
             string result = cmd.ExecuteScalar().ToString();
             if (result == "1")
             {
-                DataProcessor.send_response("Logged in");
+                DataProcessor.send_response("Entered Account");
             }
 
             else

@@ -13,10 +13,27 @@ namespace LoginService
 
         public static void send_response(string data)
         {
+            /*
             ServerClientSync sc = new ServerClientSync();
             sc.ip = IPAddress.Parse("192.168.10.107");
-            sc.send_port = 11000;
+            sc.send_port = 11001;
             sc.syncWithClient(data);
+            */
+
+            TcpClient tcpClient = new TcpClient("localHost", 130);
+            using (NetworkStream ns = tcpClient.GetStream())
+            {
+
+                using (
+                    BufferedStream bs = new BufferedStream(ns))
+                {
+                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
+                    bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
+                }
+
+            }
+            tcpClient.Close();
+
         }
 
 
