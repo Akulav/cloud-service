@@ -18,15 +18,6 @@ namespace ClientBETA
 
         }
 
-        private void upload_Click(object sender, EventArgs e)
-        {
-            upload.Hide();
-            username.Show();
-            service.Show();
-            password.Show();
-            uploadtoserver.Show();
-        }
-
         private void uploadtoserver_Click(object sender, EventArgs e)
         {
             string id = this.identificator;
@@ -37,6 +28,7 @@ namespace ClientBETA
         {
             Communications.send_data("localhost", 130, "download", idlabel.Text, null);
             string data = Communications.listen2(13);
+            data = data.Replace("downloadservice", null);
             dataBox.Text = data;
         }
     }

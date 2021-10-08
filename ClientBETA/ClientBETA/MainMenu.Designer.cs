@@ -30,7 +30,6 @@ namespace ClientBETA
         private void InitializeComponent()
         {
             this.idlabel = new System.Windows.Forms.Label();
-            this.upload = new System.Windows.Forms.Button();
             this.download = new System.Windows.Forms.Button();
             this.service = new System.Windows.Forms.TextBox();
             this.password = new System.Windows.Forms.TextBox();
@@ -48,19 +47,9 @@ namespace ClientBETA
             this.idlabel.TabIndex = 5;
             this.idlabel.Text = "ID";
             // 
-            // upload
-            // 
-            this.upload.Location = new System.Drawing.Point(15, 260);
-            this.upload.Name = "upload";
-            this.upload.Size = new System.Drawing.Size(233, 51);
-            this.upload.TabIndex = 6;
-            this.upload.Text = "Upload Data";
-            this.upload.UseVisualStyleBackColor = true;
-            this.upload.Click += new System.EventHandler(this.upload_Click);
-            // 
             // download
             // 
-            this.download.Location = new System.Drawing.Point(299, 260);
+            this.download.Location = new System.Drawing.Point(157, 205);
             this.download.Name = "download";
             this.download.Size = new System.Drawing.Size(233, 51);
             this.download.TabIndex = 7;
@@ -101,10 +90,10 @@ namespace ClientBETA
             // 
             // dataBox
             // 
-            this.dataBox.Location = new System.Drawing.Point(138, 334);
+            this.dataBox.Location = new System.Drawing.Point(157, 262);
             this.dataBox.Multiline = true;
             this.dataBox.Name = "dataBox";
-            this.dataBox.Size = new System.Drawing.Size(275, 109);
+            this.dataBox.Size = new System.Drawing.Size(233, 109);
             this.dataBox.TabIndex = 12;
             // 
             // MainMenu
@@ -118,7 +107,6 @@ namespace ClientBETA
             this.Controls.Add(this.password);
             this.Controls.Add(this.service);
             this.Controls.Add(this.download);
-            this.Controls.Add(this.upload);
             this.Controls.Add(this.idlabel);
             this.Name = "MainMenu";
             this.Text = "MainMenu";
@@ -131,7 +119,6 @@ namespace ClientBETA
         #endregion
 
         private System.Windows.Forms.Label idlabel;
-        private System.Windows.Forms.Button upload;
         private System.Windows.Forms.Button download;
         private System.Windows.Forms.TextBox service;
         private System.Windows.Forms.TextBox password;
