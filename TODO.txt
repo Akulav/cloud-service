@@ -11,3 +11,4 @@ Trip if a call fails
 Gateway caches id (no need to call login service each time)
 Multiple Connections (DONE)
 Circuit Breaker
+NoSQL
