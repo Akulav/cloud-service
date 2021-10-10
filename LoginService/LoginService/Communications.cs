@@ -6,12 +6,11 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace DataService
+namespace LoginService
 {
     class Communications
     {
-
-        public static void send_data(string ip, int port, string command, string arg1)
+        public static void send_response(string data, string ip, int port)
         {
             TcpClient tcpClient = new TcpClient(ip, port);
             using (NetworkStream ns = tcpClient.GetStream())
@@ -20,11 +19,13 @@ namespace DataService
                 using (
                     BufferedStream bs = new BufferedStream(ns))
                 {
-                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(command + " " + arg1);
+                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
                     bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
                 }
 
             }
+            tcpClient.Close();
+
         }
 
         public static void listen(int port, SqlConnection connection)
@@ -32,7 +33,7 @@ namespace DataService
             TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
 
-            Console.WriteLine("DATASERVICE INITIALIZED...");
+            Console.WriteLine("LOGINSERVICE INITIALIZED...");
 
             while (true)
             {
@@ -54,7 +55,7 @@ namespace DataService
 
                     string str = new string(user_data);
                     string[] finalData = DataProcessor.wordArray(user_data);
-                    Console.WriteLine("DATA=" + str);
+                    Console.WriteLine("DATA="+str);
                     Database.router(finalData, connection);
 
                     client.Close();
@@ -63,6 +64,5 @@ namespace DataService
                 childSocketThread.Start();
             }
         }
-
     }
 }

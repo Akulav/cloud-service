@@ -112,8 +112,7 @@ namespace Gateway
 
                     string str = new string(user_data);
                     string[] finalData = DataProcessor.wordArray(user_data);
-                    Console.WriteLine(finalData.Length);
-                    Console.WriteLine(str);
+                    Console.WriteLine("Data="+str);
                     Communication.router(finalData, str);
 
                     client.Close();

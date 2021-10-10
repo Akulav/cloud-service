@@ -109,7 +109,7 @@ namespace ClientBETA
             this.Controls.Add(this.download);
             this.Controls.Add(this.idlabel);
             this.Name = "MainMenu";
-            this.Text = "MainMenu";
+            this.Text = "V";
             this.Load += new System.EventHandler(this.MainMenu_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

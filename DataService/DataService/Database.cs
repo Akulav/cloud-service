@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace DataService
 {
     class Database
     {
-        public static void router(string[] data)
+        public static void router(string[] data, SqlConnection connection)
         {
             if (data[0] == "connect")
             {
-                connect(data[1]);
+                connect(data[1], connection);
             }
 
             else if (data[0] == "upload")
@@ -28,11 +29,8 @@ namespace DataService
 
         }
 
-        public static void connect(string id)
+        public static void connect(string id, SqlConnection connection)
         {
-            string connectionString = @"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = C:\Users\akula\Documents\data.mdf; Integrated Security = True; Connect Timeout = 30";
-            SqlConnection connection = new SqlConnection(connectionString);
-            connection.Open();
             string salt = DataProcessor.RandomString(255);
             string insert_id = $"SELECT Count(id) FROM [dbo].[passwords] WHERE id = '{id}'";
 
@@ -47,6 +45,20 @@ namespace DataService
 
                 DataProcessor.initializeDataSet(id);
             }
+        }
+
+        public static SqlConnection connectDB()
+        {
+            SqlConnection connection = null;
+            Thread thread = new Thread(() => {
+                string connectionString = @"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = C:\Users\akula\Documents\data.mdf; Integrated Security = True; Connect Timeout = 30";
+                connection = new SqlConnection(connectionString);
+                connection.Open();
+
+            });
+            thread.Start();
+            thread.Join();
+            return connection;
         }
 
         public static void upload(string[] data)
