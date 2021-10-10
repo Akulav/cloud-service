@@ -45,7 +45,7 @@ namespace LoginService
             return connection;
         }
 
-        public static void login(string username, string password, SqlConnection connection)
+        public static void login(string username, string password, string hash ,SqlConnection connection)
         {
             string checkloginquery = $"SELECT COUNT(id)FROM [dbo].[Data] WHERE username = '{username}' AND password = '{password}'";
             string getidquery = $"SELECT id FROM [dbo].[Data] WHERE username = '{username}' AND password = '{password}'";
@@ -57,7 +57,7 @@ namespace LoginService
                 SqlCommand idget = new SqlCommand(getidquery, connection);
                 string id = idget.ExecuteScalar().ToString();
                 Console.WriteLine(id);
-                Communications.send_response("1" +" " + id, "localhost", 130);
+                Communications.send_response("1" +" " + id + " " + hash, "localhost", 130);
             }
 
             else
@@ -75,7 +75,7 @@ namespace LoginService
 
             if (data[0] == "login")
             {
-                login(data[1], data[2], connection);
+                login(data[1], data[2], data[3] ,connection);
             }
         }
 

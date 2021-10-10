@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.SqlClient;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -67,11 +68,29 @@ namespace Gateway
         }
 
 
-        public static void router(string[] data, string data_string)
+        public static void router(string[] data, string data_string, SqlConnection connection)
         {
-            if (data[0]=="signup" || data[0] == "login")
+
+
+            if (data[0]=="signup")
             {
                 send_to_user(data_string);          
+            }
+
+            else if (data[0] == "login")
+            {
+                string reply = Database.checkHash(connection, data[3]);
+
+                if (reply == null)
+                {
+                    Database.insertCacheHash(connection, data[3]);
+                    send_to_user(data_string);
+                }
+
+                else
+                {
+                    send_to_client(reply);
+                }
             }
 
             else if (data[0] == "connect" || data[0] == "upload" || data[0] == "download")
@@ -82,10 +101,11 @@ namespace Gateway
             else
             {
                 send_to_client(data_string);
+                Database.insertCacheReply(connection, data_string, data[data.Length-1]);
             }
         }
 
-        public static void listen(int port)
+        public static void listen(int port, SqlConnection connection)
         {
             TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
@@ -113,7 +133,7 @@ namespace Gateway
                     string str = new string(user_data);
                     string[] finalData = DataProcessor.wordArray(user_data);
                     Console.WriteLine("Data="+str);
-                    Communication.router(finalData, str);
+                    Communication.router(finalData, str, connection);
 
                     client.Close();
                 });

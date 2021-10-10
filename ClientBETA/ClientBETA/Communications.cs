@@ -11,13 +11,16 @@ namespace ClientBETA
         public static void send_data(string ip, int port, string command, string arg1, string arg2)
         {
             TcpClient tcpClient = new TcpClient(ip, port);
+            string data = command + " " + arg1 + " " + arg2 + " ";
+            string data_hash = data + Crypto.GetHashString(data);
+
             using (NetworkStream ns = tcpClient.GetStream())
             {
 
                 using (
                     BufferedStream bs = new BufferedStream(ns))
                 {
-                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(command + " " + arg1 + " " + arg2);
+                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data_hash);
                     bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
                 }
 

@@ -1,10 +1,13 @@
-﻿namespace Gateway
+﻿using System.Data.SqlClient;
+
+namespace Gateway
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Communication.listen(130);
+            SqlConnection connection = Database.connectDB();
+            Communication.listen(130, connection);
         }
     }
 }
