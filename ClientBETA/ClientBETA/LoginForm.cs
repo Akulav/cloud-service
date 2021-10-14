@@ -39,14 +39,14 @@ namespace ClientBETA
                 this.id = data[1];
                 MainMenu mm = new MainMenu(id);
                 mm.Show();
-                this.Hide();
+                //this.Hide();
             }
             
         }
 
         private void Client_Load(object sender, EventArgs e)
         {
-
+            Communications.send_data("localhost", 130, "health", null, null);
         }
 
         

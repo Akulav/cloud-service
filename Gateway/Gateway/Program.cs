@@ -7,7 +7,10 @@ namespace Gateway
         static void Main(string[] args)
         {
             SqlConnection connection = Database.connectDB();
-            Communication.listen(130, connection);
+            string[] user = Communication.getUser(connection);
+            string[] data = Communication.getData(connection);
+            string[] cache = Communication.getCache(connection);
+            Communication.listen(130, connection, user, data, cache);
         }
     }
 }

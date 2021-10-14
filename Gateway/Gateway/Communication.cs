@@ -10,21 +10,27 @@ namespace Gateway
 {
     class Communication
     {
-        public static void send_to_user(string data, string ip, string port)
+        public static void send_response(string data, string ip, string port, string service, SqlConnection connection)
         {
 
-            TcpClient tcpClient = new TcpClient(ip, int.Parse(port));
-            using (NetworkStream ns = tcpClient.GetStream())
+            try
             {
-
-                using (
-                    BufferedStream bs = new BufferedStream(ns))
+                TcpClient tcpClient = new TcpClient(ip, int.Parse(port));   
+                using (NetworkStream ns = tcpClient.GetStream())
                 {
-                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
-                    bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
-                }
 
+                    using (
+                        BufferedStream bs = new BufferedStream(ns))
+                    {
+                        byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
+                        bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
+                    }
+
+                }
             }
+
+            
+            catch { Console.WriteLine("ERROR"); Database.insertServiceERROR(connection, service); }
 
         }
 
@@ -48,51 +54,44 @@ namespace Gateway
 
         }
 
-        public static void send_to_data(string data, string ip, string port)
+        public static string[] getUser(SqlConnection connection)
         {
-
-            TcpClient tcpClient = new TcpClient(ip, int.Parse(port));
-            using (NetworkStream ns = tcpClient.GetStream())
+            string[] user = null;
+            Thread thread = new Thread(() =>
             {
-
-                using (
-                    BufferedStream bs = new BufferedStream(ns))
-                {
-                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
-                    bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
-                }
-
-            }
-            tcpClient.Close();
-
+                user = Database.getAddress(connection, "user");
+            });
+            thread.Start();
+            thread.Join();
+            return user;
         }
 
-        public static void send_to_cache(string data, string ip, string port)
+        public static string[] getCache(SqlConnection connection)
         {
-
-            TcpClient tcpClient = new TcpClient(ip, int.Parse(port));
-            using (NetworkStream ns = tcpClient.GetStream())
+            string[] cache = null;
+            Thread thread = new Thread(() =>
             {
-
-                using (
-                    BufferedStream bs = new BufferedStream(ns))
-                {
-                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
-                    bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
-                }
-
-            }
-            tcpClient.Close();
-
+                cache = Database.getAddress(connection, "cache");
+            });
+            thread.Start();
+            thread.Join();
+            return cache;
         }
 
-        public static void getAddresses(SqlConnection connection)
+
+        public static string[] getData(SqlConnection connection)
         {
-
+            string[] data = null;
+            Thread thread = new Thread(() =>
+            {
+                data = Database.getAddress(connection, "data");
+            });
+            thread.Start();
+            thread.Join();
+            return data;
         }
 
-
-        public static void router(string[] data, string data_string, SqlConnection connection)
+        public static void router(string[] data, string data_string, SqlConnection connection, string[] user, string[] dataA, string[] cache)
         {
             if (data[0] == "whitelist")
             {
@@ -100,39 +99,42 @@ namespace Gateway
                 Database.insertServiceIP(connection, data[3], data[1]);
             }
 
+            else if (data[0] == "health")
+            {
+               // send_response(data_string, user[0], user[1], null);
+               // send_response(data_string, dataA[0], dataA[1], null);
+               // send_response(data_string, cache[0], cache[1],null);
+            }
+
             else if (data[0]=="signup")
             {
-                string[] address = Database.getAddress(connection, "user");
-                send_to_user(data_string,address[0],address[1]);          
+                send_response(data_string,user[0],user[1], "user", connection);          
             }
 
             else if (data[0] == "login")
             {
-                string[] address = Database.getAddress(connection, "cache");
-                send_to_cache(data_string,address[0],address[1]);
+                send_response(data_string, cache[0], cache[1], "cache", connection);
             }
 
             else if (data[0] == "connect" || data[0] == "upload" || data[0] == "download")
             {
                 string[] address = Database.getAddress(connection, "data");
-                send_to_data(data_string, address[0],address[1]);
+                send_response(data_string, dataA[0], dataA[1], "data", connection);
             }
 
             else if (data[0] == "loginNoCache")
             {
-                string[] address = Database.getAddress(connection, "user");
-                send_to_user(data_string, address[0],address[1]);
+                send_response(data_string, user[0], user[1], "user", connection);
             }
 
             else
             {
-                string[] address = Database.getAddress(connection, "cache");
                 send_to_client(data_string);
-                send_to_cache(data_string,address[0],address[1]);            
+                send_response(data_string , cache[0], cache[1], "cache", connection);
             }
         }
 
-        public static void listen(int port, SqlConnection connection)
+        public static void listen(int port, SqlConnection connection, string[] user, string[] dataA, string[] cache)
         {
             TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
@@ -160,7 +162,7 @@ namespace Gateway
                     string str = new string(user_data);
                     string[] finalData = DataProcessor.wordArray(user_data);
                     Console.WriteLine("Data="+str);
-                    Communication.router(finalData, str, connection);
+                    Communication.router(finalData, str, connection, user , dataA, cache);
 
                     client.Close();
                 });

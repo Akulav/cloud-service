@@ -27,6 +27,11 @@ namespace DataService
                 download(data[1]);
             }
 
+            else if (data[0] == "health")
+            {
+                Communications.send_response("data", "localhost", 130);
+            }
+
         }
 
         public static void connect(string id, SqlConnection connection)

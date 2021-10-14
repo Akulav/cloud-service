@@ -33,6 +33,27 @@ namespace Gateway
             cmd.ExecuteNonQuery();
         }
 
+        public static void insertServiceERROR(SqlConnection connection, string service)
+        {
+            string queryFails = $"SELECT fails FROM [dbo].[Table] WHERE service = '{service}'";
+            SqlCommand cmd1 = new SqlCommand(queryFails, connection);
+            int fails = int.Parse(cmd1.ExecuteScalar().ToString());
+
+            if (fails < 5)
+            {
+                string insertquery = $"UPDATE [dbo].[Table] SET fails = ('{fails+1}') WHERE service = ('{service}')";
+                SqlCommand cmd = new SqlCommand(insertquery, connection);
+                cmd.ExecuteNonQuery();
+            }
+
+            else
+            {
+                string dropquery = $"UPDATE [dbo].[Table] SET fails = ('0') WHERE service = ('{service}') UPDATE [dbo].[Table] SET ip = null WHERE service = ('{service}') UPDATE [dbo].[Table] SET port = null WHERE service = ('{service}')";
+                SqlCommand cmd2 = new SqlCommand(dropquery, connection);
+                cmd2.ExecuteNonQuery();
+            }
+        }
+
         public static string[] getAddress(SqlConnection connection,string service)
         {
             string queryIP = $"SELECT ip FROM [dbo].[Table] WHERE service = '{service}'";

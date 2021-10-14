@@ -11,44 +11,6 @@ namespace Cache
     class Communication
     {
 
-        public static void send_to_client(string data)
-        {
-
-            TcpClient tcpClient = new TcpClient("localHost", 13);
-            using (NetworkStream ns = tcpClient.GetStream())
-            {
-
-                using (
-                    BufferedStream bs = new BufferedStream(ns))
-                {
-                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
-                    bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
-                }
-
-            }
-            tcpClient.Close();
-
-        }
-
-        public static void send_to_gateway(string data)
-        {
-
-            TcpClient tcpClient = new TcpClient("localHost", 130);
-            using (NetworkStream ns = tcpClient.GetStream())
-            {
-
-                using (
-                    BufferedStream bs = new BufferedStream(ns))
-                {
-                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
-                    bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
-                }
-
-            }
-            tcpClient.Close();
-
-        }
-
         public static void send_response(string data, string ip, int port)
         {
             TcpClient tcpClient = new TcpClient(ip, port);
@@ -72,6 +34,8 @@ namespace Cache
         public static void router(string[] data, string data_string, SqlConnection connection)
         {
 
+
+
             if (data[0] == "login")
             {
 
@@ -80,16 +44,21 @@ namespace Cache
                 {
                     Database.insertCacheHash(connection, data[3]);
                     data[0] = "loginNoCache";
-                    string converted = String.Join(" ",data);
-                    send_to_gateway(converted);
+                    string converted = String.Join(" ", data);
+                    send_response(converted, "localhost", 130);
                     Console.WriteLine("converted: " + converted);
                 }
 
                 else
                 {
                     Console.WriteLine("HERE");
-                    send_to_client(reply);
+                    send_response(reply, "localhost", 13);
                 }
+            }
+
+            else if (data[0] == "RESTRICTED") 
+            {
+                Console.WriteLine("RESTRICTED");
             }
 
             else
@@ -128,8 +97,9 @@ namespace Cache
                     string str = new string(user_data);
                     string[] finalData = DataProcessor.wordArray(user_data);
                     Console.WriteLine("Data=" + str);
-                    Communication.router(finalData, str, connection);
 
+                    Communication.router(finalData, str, connection);
+                    
                     client.Close();
                 });
 
