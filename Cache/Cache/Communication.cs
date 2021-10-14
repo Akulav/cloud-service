@@ -6,28 +6,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace Gateway
+namespace Cache
 {
     class Communication
     {
-        public static void send_to_user(string data)
-        {
-
-            TcpClient tcpClient = new TcpClient("localHost", 13000);
-            using (NetworkStream ns = tcpClient.GetStream())
-            {
-
-                using (
-                    BufferedStream bs = new BufferedStream(ns))
-                {
-                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
-                    bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
-                }
-
-            }
-
-        }
-
 
         public static void send_to_client(string data)
         {
@@ -48,10 +30,10 @@ namespace Gateway
 
         }
 
-        public static void send_to_data(string data)
+        public static void send_to_gateway(string data)
         {
 
-            TcpClient tcpClient = new TcpClient("localHost", 1300);
+            TcpClient tcpClient = new TcpClient("localHost", 130);
             using (NetworkStream ns = tcpClient.GetStream())
             {
 
@@ -67,56 +49,37 @@ namespace Gateway
 
         }
 
-        public static void send_to_cache(string data)
-        {
-
-            TcpClient tcpClient = new TcpClient("localHost", 69);
-            using (NetworkStream ns = tcpClient.GetStream())
-            {
-
-                using (
-                    BufferedStream bs = new BufferedStream(ns))
-                {
-                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
-                    bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
-                }
-
-            }
-            tcpClient.Close();
-
-        }
 
 
         public static void router(string[] data, string data_string, SqlConnection connection)
         {
 
-
-            if (data[0]=="signup")
+            if (data[0] == "login")
             {
-                send_to_user(data_string);          
-            }
 
-            else if (data[0] == "login")
-            {
-                send_to_cache(data_string);
-            }
+                string reply = Database.checkHash(connection, data[3]);
+                if (reply == null)
+                {
+                    Database.insertCacheHash(connection, data[3]);
+                    data[0] = "loginNoCache";
+                    string converted = String.Join(" ",data);
+                    send_to_gateway(converted);
+                    Console.WriteLine("converted: " + converted);
+                }
 
-            else if (data[0] == "connect" || data[0] == "upload" || data[0] == "download")
-            {
-                send_to_data(data_string);
-            }
-
-            else if (data[0] == "loginNoCache")
-            {
-                send_to_user(data_string);
+                else
+                {
+                    Console.WriteLine("HERE");
+                    send_to_client(reply);
+                }
             }
 
             else
             {
-                send_to_client(data_string);
-                send_to_cache(data_string);
-                //Database.insertCacheReply(connection, data_string, data[data.Length-1]);
+                Console.WriteLine("TO BE CACHED:" + data_string);
+                Database.insertCacheReply(connection, data_string, data[data.Length - 1]);
             }
+
         }
 
         public static void listen(int port, SqlConnection connection)
@@ -124,7 +87,7 @@ namespace Gateway
             TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
 
-            Console.WriteLine("GATEWAY INITIALIZED...");
+            Console.WriteLine("CACHE INITIALIZED...");
 
             while (true)
             {
@@ -146,7 +109,7 @@ namespace Gateway
 
                     string str = new string(user_data);
                     string[] finalData = DataProcessor.wordArray(user_data);
-                    Console.WriteLine("Data="+str);
+                    Console.WriteLine("Data=" + str);
                     Communication.router(finalData, str, connection);
 
                     client.Close();
