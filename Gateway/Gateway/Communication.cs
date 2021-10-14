@@ -10,10 +10,10 @@ namespace Gateway
 {
     class Communication
     {
-        public static void send_to_user(string data)
+        public static void send_to_user(string data, string ip, string port)
         {
 
-            TcpClient tcpClient = new TcpClient("localHost", 13000);
+            TcpClient tcpClient = new TcpClient(ip, int.Parse(port));
             using (NetworkStream ns = tcpClient.GetStream())
             {
 
@@ -48,10 +48,10 @@ namespace Gateway
 
         }
 
-        public static void send_to_data(string data)
+        public static void send_to_data(string data, string ip, string port)
         {
 
-            TcpClient tcpClient = new TcpClient("localHost", 1300);
+            TcpClient tcpClient = new TcpClient(ip, int.Parse(port));
             using (NetworkStream ns = tcpClient.GetStream())
             {
 
@@ -67,10 +67,10 @@ namespace Gateway
 
         }
 
-        public static void send_to_cache(string data)
+        public static void send_to_cache(string data, string ip, string port)
         {
 
-            TcpClient tcpClient = new TcpClient("localHost", 69);
+            TcpClient tcpClient = new TcpClient(ip, int.Parse(port));
             using (NetworkStream ns = tcpClient.GetStream())
             {
 
@@ -83,39 +83,52 @@ namespace Gateway
 
             }
             tcpClient.Close();
+
+        }
+
+        public static void getAddresses(SqlConnection connection)
+        {
 
         }
 
 
         public static void router(string[] data, string data_string, SqlConnection connection)
         {
-
-
-            if (data[0]=="signup")
+            if (data[0] == "whitelist")
             {
-                send_to_user(data_string);          
+                Database.insertServicePort(connection, data[2], data[1]);
+                Database.insertServiceIP(connection, data[3], data[1]);
+            }
+
+            else if (data[0]=="signup")
+            {
+                string[] address = Database.getAddress(connection, "user");
+                send_to_user(data_string,address[0],address[1]);          
             }
 
             else if (data[0] == "login")
             {
-                send_to_cache(data_string);
+                string[] address = Database.getAddress(connection, "cache");
+                send_to_cache(data_string,address[0],address[1]);
             }
 
             else if (data[0] == "connect" || data[0] == "upload" || data[0] == "download")
             {
-                send_to_data(data_string);
+                string[] address = Database.getAddress(connection, "data");
+                send_to_data(data_string, address[0],address[1]);
             }
 
             else if (data[0] == "loginNoCache")
             {
-                send_to_user(data_string);
+                string[] address = Database.getAddress(connection, "user");
+                send_to_user(data_string, address[0],address[1]);
             }
 
             else
             {
+                string[] address = Database.getAddress(connection, "cache");
                 send_to_client(data_string);
-                send_to_cache(data_string);
-                //Database.insertCacheReply(connection, data_string, data[data.Length-1]);
+                send_to_cache(data_string,address[0],address[1]);            
             }
         }
 
@@ -158,3 +171,4 @@ namespace Gateway
 
     }
 }
+

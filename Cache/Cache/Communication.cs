@@ -49,6 +49,24 @@ namespace Cache
 
         }
 
+        public static void send_response(string data, string ip, int port)
+        {
+            TcpClient tcpClient = new TcpClient(ip, port);
+            using (NetworkStream ns = tcpClient.GetStream())
+            {
+
+                using (
+                    BufferedStream bs = new BufferedStream(ns))
+                {
+                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
+                    bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
+                }
+
+            }
+            tcpClient.Close();
+
+        }
+
 
 
         public static void router(string[] data, string data_string, SqlConnection connection)

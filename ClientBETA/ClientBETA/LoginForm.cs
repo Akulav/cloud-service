@@ -34,7 +34,7 @@ namespace ClientBETA
 
             if (data.Length > 1)
             {
-                Communications.send_data("localhost", 1300, "connect", data[1], null);
+                Communications.send_data("localhost", 130, "connect", data[1], null);
                 idlabel.Text = data[1];
                 this.id = data[1];
                 MainMenu mm = new MainMenu(id);

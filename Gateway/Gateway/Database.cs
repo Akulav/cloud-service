@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Text;
+﻿using System.Data.SqlClient;
 using System.Threading;
 
 namespace Gateway
@@ -12,7 +9,7 @@ namespace Gateway
         {
             SqlConnection connection = null;
             Thread thread = new Thread(() => {
-                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\cache.mdf;Integrated Security=True;Connect Timeout=30";
+                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\whitelist.mdf;Integrated Security=True;Connect Timeout=30";
                 connection = new SqlConnection(connectionString);
                 connection.Open();
 
@@ -22,40 +19,33 @@ namespace Gateway
             return connection;
         }
 
-        public static void insertCacheHash(SqlConnection connection, string hash)
+        public static void insertServicePort(SqlConnection connection, string port,string service)
         {
-            string inserthashquery = $"INSERT INTO [dbo].[Table] (hash) VALUES ('{hash}')";
-            SqlCommand cmd = new SqlCommand(inserthashquery, connection);
+            string insertquery = $"UPDATE [dbo].[Table] SET port = ('{port}') WHERE service = ('{service}')";
+            SqlCommand cmd = new SqlCommand(insertquery, connection);
             cmd.ExecuteNonQuery();
         }
 
-        public static void insertCacheReply(SqlConnection connection, string reply, string hash)
+        public static void insertServiceIP(SqlConnection connection, string ip, string service)
         {
-            string insertreplyquery = $"UPDATE [dbo].[Table] SET reply = ('{reply}') WHERE hash = ('{hash}')";
-            SqlCommand cmd = new SqlCommand(insertreplyquery, connection);
+            string insertquery = $"UPDATE [dbo].[Table] SET ip = ('{ip}') WHERE service = ('{service}')";
+            SqlCommand cmd = new SqlCommand(insertquery, connection);
             cmd.ExecuteNonQuery();
         }
 
-        public static string checkHash(SqlConnection connection, string hash)
+        public static string[] getAddress(SqlConnection connection,string service)
         {
-            string checkquery = $"SELECT COUNT(hash)FROM [dbo].[Table] WHERE hash = '{hash}'";
-            string getreplyquery = $"SELECT reply FROM [dbo].[Table] WHERE hash = '{hash}'";
-
-            SqlCommand cmd = new SqlCommand(checkquery, connection);
-            string result = cmd.ExecuteScalar().ToString();
-
-            if (result == "1")
-            {
-                SqlCommand replyget = new SqlCommand(getreplyquery, connection);
-                string reply = replyget.ExecuteScalar().ToString();
-                Console.WriteLine(reply);
-                return reply;
-            }
-
-            else
-            {
-                return null;
-            }
+            string queryIP = $"SELECT ip FROM [dbo].[Table] WHERE service = '{service}'";
+            string queryPORT = $"SELECT port FROM [dbo].[Table] WHERE service = '{service}'";
+            SqlCommand cmd = new SqlCommand(queryIP, connection);
+            SqlCommand cmd1 = new SqlCommand(queryPORT, connection);
+            string ip = cmd.ExecuteScalar().ToString();
+            string port = cmd1.ExecuteScalar().ToString();
+            string data = ip + " " + port;
+            string[] address = DataProcessor.wordArray(data.ToCharArray());
+            return address;
         }
+
     }
 }
+

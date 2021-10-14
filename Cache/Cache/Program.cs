@@ -8,7 +8,8 @@ namespace Cache
         static void Main(string[] args)
         {
             SqlConnection connection = Database.connectDB();
-            Communication.listen(69, connection);
+            Communication.send_response("whitelist cache 68 localhost", "localhost", 130);
+            Communication.listen(68, connection);
         }
     }
 }

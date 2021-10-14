@@ -7,7 +7,8 @@ namespace DataService
         static void Main(string[] args)
         {
             SqlConnection connection = Database.connectDB();
-            Communications.listen(1300, connection);
+            Communications.send_response("whitelist data 1301 localhost", "localhost", 130);
+            Communications.listen(1301, connection);
         }
         
     }
