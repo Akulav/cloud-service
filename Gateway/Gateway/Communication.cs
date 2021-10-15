@@ -54,6 +54,13 @@ namespace Gateway
 
         }
 
+        public static void status(string[] user, string[] data, string[] cache, SqlConnection connection)
+        {
+            send_response("health", user[0], user[1], "user", connection);
+            send_response("health", data[0], data[1], "data", connection);
+            send_response("health", cache[0], cache[1], "cache", connection);
+        }
+
         public static string[] getUser(SqlConnection connection)
         {
             string[] user = null;
@@ -93,32 +100,35 @@ namespace Gateway
 
         public static void router(string[] data, string data_string, SqlConnection connection, string[] user, string[] dataA, string[] cache)
         {
+
+            //status(user, data, cache, connection);
+
             if (data[0] == "whitelist")
             {
                 Database.insertServicePort(connection, data[2], data[1]);
                 Database.insertServiceIP(connection, data[3], data[1]);
             }
 
-            else if (data[0] == "health")
+            else if (data[0] == "healthRply")
             {
-               // send_response(data_string, user[0], user[1], null);
-               // send_response(data_string, dataA[0], dataA[1], null);
-               // send_response(data_string, cache[0], cache[1],null);
+                Console.WriteLine("Service: " + data[1] + " is alive.");
             }
 
             else if (data[0]=="signup")
             {
+                send_response("health", user[0], user[1], "user", connection);
                 send_response(data_string,user[0],user[1], "user", connection);          
             }
 
             else if (data[0] == "login")
             {
+                send_response("health", cache[0], cache[1], "cache", connection);
                 send_response(data_string, cache[0], cache[1], "cache", connection);
             }
 
             else if (data[0] == "connect" || data[0] == "upload" || data[0] == "download")
             {
-                string[] address = Database.getAddress(connection, "data");
+                send_response("health", dataA[0], dataA[1], "data", connection);
                 send_response(data_string, dataA[0], dataA[1], "data", connection);
             }
 
@@ -129,7 +139,9 @@ namespace Gateway
 
             else
             {
+                Console.WriteLine(data_string + " WOW");
                 send_to_client(data_string);
+                send_response("health", cache[0], cache[1], "cache", connection);
                 send_response(data_string , cache[0], cache[1], "cache", connection);
             }
         }

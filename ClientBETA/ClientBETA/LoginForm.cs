@@ -46,7 +46,7 @@ namespace ClientBETA
 
         private void Client_Load(object sender, EventArgs e)
         {
-            Communications.send_data("localhost", 130, "health", null, null);
+            //Communications.send_data("localhost", 130, "health", null, null);
         }
 
         

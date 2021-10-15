@@ -73,9 +73,14 @@ namespace LoginService
                 signup(data[1], data[2], connection);
             }
 
-            if (data[0] == "login" || data[0] == "loginNoCache")
+            else if (data[0] == "login" || data[0] == "loginNoCache")
             {
                 login(data[1], data[2], data[3] ,connection);
+            }
+
+            else if (data[0] == "health")
+            {
+                Communications.send_response("healthRply user", "localhost", 130);
             }
         }
 

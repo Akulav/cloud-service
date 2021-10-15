@@ -29,7 +29,7 @@ namespace DataService
 
             else if (data[0] == "health")
             {
-                Communications.send_response("data", "localhost", 130);
+                Communications.send_response("healthRply data", "localhost", 130);
             }
 
         }

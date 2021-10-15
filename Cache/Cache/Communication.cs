@@ -56,9 +56,9 @@ namespace Cache
                 }
             }
 
-            else if (data[0] == "RESTRICTED") 
+            else if (data[0] == "health")
             {
-                Console.WriteLine("RESTRICTED");
+                send_response("healthRply cache", "localhost", 130);
             }
 
             else

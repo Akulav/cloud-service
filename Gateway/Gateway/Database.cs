@@ -22,8 +22,11 @@ namespace Gateway
         public static void insertServicePort(SqlConnection connection, string port,string service)
         {
             string insertquery = $"UPDATE [dbo].[Table] SET port = ('{port}') WHERE service = ('{service}')";
+            string resetquery = $"UPDATE [dbo].[Table] SET fails = 0 WHERE service = ('{service}')";
             SqlCommand cmd = new SqlCommand(insertquery, connection);
+            SqlCommand cmd1 = new SqlCommand(resetquery, connection);
             cmd.ExecuteNonQuery();
+            cmd1.ExecuteNonQuery();
         }
 
         public static void insertServiceIP(SqlConnection connection, string ip, string service)
@@ -39,7 +42,7 @@ namespace Gateway
             SqlCommand cmd1 = new SqlCommand(queryFails, connection);
             int fails = int.Parse(cmd1.ExecuteScalar().ToString());
 
-            if (fails < 5)
+            if (fails < 3)
             {
                 string insertquery = $"UPDATE [dbo].[Table] SET fails = ('{fails+1}') WHERE service = ('{service}')";
                 SqlCommand cmd = new SqlCommand(insertquery, connection);
