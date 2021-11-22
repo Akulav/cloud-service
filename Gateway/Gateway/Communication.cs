@@ -34,6 +34,30 @@ namespace Gateway
 
         }
 
+        public static void send_log(string data, string ip, string port)
+        {
+
+            try
+            {
+                TcpClient tcpClient = new TcpClient(ip, int.Parse(port));
+                using (NetworkStream ns = tcpClient.GetStream())
+                {
+
+                    using (
+                        BufferedStream bs = new BufferedStream(ns))
+                    {
+                        byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
+                        bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
+                    }
+
+                }
+            }
+
+
+            catch { Console.WriteLine("ERROR"); }
+
+        }
+
 
         public static void send_to_client(string data)
         {
@@ -150,7 +174,10 @@ namespace Gateway
         {
             TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
-
+            int round_robin = 0;
+            string[] logger_ports = { "111", "112" };
+            int logger_length = logger_ports.Length;
+ 
             Console.WriteLine("GATEWAY INITIALIZED...");
 
             while (true)
@@ -174,7 +201,19 @@ namespace Gateway
                     string str = new string(user_data);
                     string[] finalData = DataProcessor.wordArray(user_data);
                     Console.WriteLine("Data="+str);
-                    Communication.router(finalData, str, connection, user , dataA, cache);
+
+                    Console.WriteLine("WOW" + round_robin);
+
+                    if (round_robin >= logger_length) { round_robin = 0; send_log(finalData[1], "localhost", logger_ports[round_robin]); round_robin++; }
+
+                    else
+                    {
+                        Console.WriteLine("HERE HERE HERE" + round_robin);
+                        send_log(finalData[1], "localhost", logger_ports[round_robin]);
+                        round_robin++;
+                    }
+
+                    router(finalData, str, connection, user , dataA, cache);
 
                     client.Close();
                 });
