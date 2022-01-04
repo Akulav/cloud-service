@@ -24,31 +24,6 @@ namespace Gateway
             }
         }
 
-        public static void send_log(string data, string ip, string port)
-        {
-
-            try
-            {
-                TcpClient tcpClient = new TcpClient(ip, int.Parse(port));
-                using (NetworkStream ns = tcpClient.GetStream())
-                {
-
-                    using (
-                        BufferedStream bs = new BufferedStream(ns))
-                    {
-                        byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
-                        bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
-                    }
-
-                }
-            }
-
-
-            catch { Console.WriteLine("ERROR"); }
-
-        }
-
-
         public static void send_to_client(string data)
         {
 
@@ -163,4 +138,3 @@ namespace Gateway
 
     }
 }
-
