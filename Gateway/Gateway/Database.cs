@@ -8,7 +8,9 @@ namespace Gateway
         public static SqlConnection connectDB()
         {
             SqlConnection connection = null;
-            Thread thread = new Thread(() => {
+            Thread thread = new Thread(() =>
+            {
+                
                 string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\whitelist.mdf;Integrated Security=True;Connect Timeout=30";
                 connection = new SqlConnection(connectionString);
                 connection.Open();
@@ -19,22 +21,49 @@ namespace Gateway
             return connection;
         }
 
-        public static void insertServicePort(SqlConnection connection, string port,string service)
+        public static SqlConnection getDB(string service)
         {
-            string insertquery = $"UPDATE [dbo].[Table] SET port = ('{port}') WHERE service = ('{service}')";
-            string resetquery = $"UPDATE [dbo].[Table] SET fails = 0 WHERE service = ('{service}')";
-            SqlCommand cmd = new SqlCommand(insertquery, connection);
-            SqlCommand cmd1 = new SqlCommand(resetquery, connection);
-            cmd.ExecuteNonQuery();
-            cmd1.ExecuteNonQuery();
+            SqlConnection connection = null;
+            if (service == "user")
+            {
+                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\logins.mdf;Integrated Security=True;Connect Timeout=30";
+                connection = new SqlConnection(connectionString);
+                connection.Open();
+            }
+            else if (service == "logger")
+            {
+                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\loggers.mdf;Integrated Security=True;Connect Timeout=30";
+                connection = new SqlConnection(connectionString);
+                connection.Open();
+            }
+            else if (service == "data")
+            {
+                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\datas.mdf;Integrated Security=True;Connect Timeout=30";
+                connection = new SqlConnection(connectionString);
+                connection.Open();
+            }
+            else if (service == "cache")
+            {
+                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\caches.mdf;Integrated Security=True;Connect Timeout=30";
+                connection = new SqlConnection(connectionString);
+                connection.Open();
+            }
+            return connection;
+        }    
+
+
+        public static void insertData(SqlConnection connection, string id, string ip)
+        {
+            try
+            {
+                string insertquery = $"INSERT INTO [dbo].[table](id, errors, ip) VALUES('{id}', '0', '{ip}')";
+                SqlCommand cmd = new SqlCommand(insertquery, connection);
+                cmd.ExecuteNonQuery();
+            }
+            catch { }
         }
 
-        public static void insertServiceIP(SqlConnection connection, string ip, string service)
-        {
-            string insertquery = $"UPDATE [dbo].[Table] SET ip = ('{ip}') WHERE service = ('{service}')";
-            SqlCommand cmd = new SqlCommand(insertquery, connection);
-            cmd.ExecuteNonQuery();
-        }
+ 
 
         public static void insertServiceERROR(SqlConnection connection, string service)
         {
@@ -44,7 +73,7 @@ namespace Gateway
 
             if (fails < 3)
             {
-                string insertquery = $"UPDATE [dbo].[Table] SET fails = ('{fails+1}') WHERE service = ('{service}')";
+                string insertquery = $"UPDATE [dbo].[Table] SET fails = ('{fails + 1}') WHERE service = ('{service}')";
                 SqlCommand cmd = new SqlCommand(insertquery, connection);
                 cmd.ExecuteNonQuery();
             }
@@ -57,7 +86,7 @@ namespace Gateway
             }
         }
 
-        public static string[] getAddress(SqlConnection connection,string service)
+        public static string[] getAddress(SqlConnection connection, string service)
         {
             string queryIP = $"SELECT ip FROM [dbo].[Table] WHERE service = '{service}'";
             string queryPORT = $"SELECT port FROM [dbo].[Table] WHERE service = '{service}'";

@@ -13,8 +13,7 @@ namespace Gateway
         public static void send_response(string data, string ip, string port, string service, SqlConnection connection)
         {
 
-            try
-            {
+           
                 TcpClient tcpClient = new TcpClient(ip, int.Parse(port));   
                 using (NetworkStream ns = tcpClient.GetStream())
                 {
@@ -27,10 +26,9 @@ namespace Gateway
                     }
 
                 }
-            }
-
             
-            catch { Console.WriteLine("ERROR"); Database.insertServiceERROR(connection, service); }
+            
+           
 
         }
 
@@ -85,52 +83,29 @@ namespace Gateway
             send_response("health", cache[0], cache[1], "cache", connection);
         }
 
-        public static string[] getUser(SqlConnection connection)
-        {
-            string[] user = null;
-            Thread thread = new Thread(() =>
-            {
-                user = Database.getAddress(connection, "user");
-            });
-            thread.Start();
-            thread.Join();
-            return user;
-        }
-
-        public static string[] getCache(SqlConnection connection)
-        {
-            string[] cache = null;
-            Thread thread = new Thread(() =>
-            {
-                cache = Database.getAddress(connection, "cache");
-            });
-            thread.Start();
-            thread.Join();
-            return cache;
-        }
-
-
-        public static string[] getData(SqlConnection connection)
-        {
-            string[] data = null;
-            Thread thread = new Thread(() =>
-            {
-                data = Database.getAddress(connection, "data");
-            });
-            thread.Start();
-            thread.Join();
-            return data;
-        }
-
-        public static void router(string[] data, string data_string, SqlConnection connection, string[] user, string[] dataA, string[] cache)
+        public static void router(string[] data, string data_string)
         {
 
             //status(user, data, cache, connection);
 
             if (data[0] == "whitelist")
             {
-                Database.insertServicePort(connection, data[2], data[1]);
-                Database.insertServiceIP(connection, data[3], data[1]);
+                if (data[1] == "user")
+                {
+                    Database.insertData(Database.getDB("user"), data[2], data[3]);
+                }
+                if (data[1] == "logger")
+                {
+                    Database.insertData(Database.getDB("logger"), data[2], data[3]);
+                }
+                if (data[1] == "data")
+                {
+                    Database.insertData(Database.getDB("data"), data[2], data[3]);
+                }
+                if (data[1] == "cache")
+                {
+                    Database.insertData(Database.getDB("cache"), data[2], data[3]);
+                }
             }
 
             else if (data[0] == "healthRply")
@@ -140,10 +115,47 @@ namespace Gateway
 
             else if (data[0]=="signup")
             {
-                send_response("health", user[0], user[1], "user", connection);
-                send_response(data_string,user[0],user[1], "user", connection);          
-            }
+                SqlConnection connection = Database.getDB("user");
+                string query = @"SELECT * FROM [dbo].[Table]";
+                SqlCommand cmd = new SqlCommand(query, connection);
+                read:
+                var Table = cmd.ExecuteReader();
 
+                while (Table.Read())
+                {
+                    try
+                    {
+                        //  send_response("health", Table[0].ToString(), Table[2].ToString(), "user", connection);
+                        //Console.WriteLine(data_string + " " + Table[0].ToString() + Table[1].ToString());
+                        send_response(data_string, Table[2].ToString(), Table[0].ToString(), "user", connection);
+                        Table.Close();
+                        break;
+                    }
+                    catch 
+                    {
+                        Console.WriteLine("ERROR");
+                        string id = Table[0].ToString();
+                        int fails = int.Parse(Table[1].ToString());
+                        Table.Close();
+
+                        if (fails < 3)
+                        {
+                            string insertquery = $"UPDATE [dbo].[Table] SET errors = ('{fails + 1}') WHERE id = ('{id}')";
+                            SqlCommand cmd3 = new SqlCommand(insertquery, connection);
+                            cmd3.ExecuteNonQuery();
+                        }
+
+                        else
+                        {
+                            string dropquery = $"DELETE FROM [dbo].[Table] WHERE id = '{id}'";
+                            SqlCommand cmd2 = new SqlCommand(dropquery, connection);
+                            cmd2.ExecuteNonQuery();
+                        }
+                        goto read;
+                    }
+                }         
+            }
+            /*
             else if (data[0] == "login")
             {
                 send_response("health", cache[0], cache[1], "cache", connection);
@@ -168,15 +180,16 @@ namespace Gateway
                 send_response("health", cache[0], cache[1], "cache", connection);
                 send_response(data_string , cache[0], cache[1], "cache", connection);
             }
+            */
         }
 
-        public static void listen(int port, SqlConnection connection, string[] user, string[] dataA, string[] cache)
+        public static void listen(int port)
         {
             TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
-            int round_robin = 0;
-            string[] logger_ports = { "111", "112" };
-            int logger_length = logger_ports.Length;
+            //int round_robin = 0;
+            //string[] logger_ports = { "111", "112" };
+            //int logger_length = logger_ports.Length;
  
             Console.WriteLine("GATEWAY INITIALIZED...");
 
@@ -202,18 +215,18 @@ namespace Gateway
                     string[] finalData = DataProcessor.wordArray(user_data);
                     Console.WriteLine("Data="+str);
 
-                    Console.WriteLine("WOW" + round_robin);
+                    //Console.WriteLine("WOW" + round_robin);
 
-                    if (round_robin >= logger_length) { round_robin = 0; send_log(finalData[1], "localhost", logger_ports[round_robin]); round_robin++; }
+                    //if (round_robin >= logger_length) { round_robin = 0; send_log(finalData[1], "localhost", logger_ports[round_robin]); round_robin++; }
 
-                    else
-                    {
-                        Console.WriteLine("HERE HERE HERE" + round_robin);
-                        send_log(finalData[1], "localhost", logger_ports[round_robin]);
-                        round_robin++;
-                    }
+                    //else
+                   // {
+                    //    Console.WriteLine("HERE HERE HERE" + round_robin);
+                        //send_log(finalData[1], "localhost", logger_ports[round_robin]);
+                   //     round_robin++;
+                    //}
 
-                    router(finalData, str, connection, user , dataA, cache);
+                    router(finalData, str);
 
                     client.Close();
                 });

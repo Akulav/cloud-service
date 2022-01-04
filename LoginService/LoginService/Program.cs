@@ -6,7 +6,7 @@ namespace LoginService
         static void Main(string[] args)
         {
             SqlConnection connection = Database.connectDB();
-            Communications.send_response("whitelist user 13001 localhost","localhost", 130);
+            Communications.send_response("whitelist user 1001 localhost","localhost", 130);
             Communications.listen(13001, connection);
         }
     }
