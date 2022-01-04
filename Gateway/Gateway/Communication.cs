@@ -10,7 +10,7 @@ namespace Gateway
 {
     class Communication
     {
-        public static void send_response(string data, string ip, string port, string service, SqlConnection connection)
+        public static void send_response(string data, string ip, string port, SqlConnection connection)
         {
             TcpClient tcpClient = new TcpClient(ip, int.Parse(port));
             using (NetworkStream ns = tcpClient.GetStream())
@@ -68,17 +68,8 @@ namespace Gateway
 
         }
 
-        public static void status(string[] user, string[] data, string[] cache, SqlConnection connection)
-        {
-            send_response("health", user[0], user[1], "user", connection);
-            send_response("health", data[0], data[1], "data", connection);
-            send_response("health", cache[0], cache[1], "cache", connection);
-        }
-
         public static void router(string[] data, string data_string)
         {
-
-            //status(user, data, cache, connection);
 
             if (data[0] == "whitelist")
             {
@@ -107,244 +98,27 @@ namespace Gateway
 
             else if (data[0] == "signup")
             {
-                SqlConnection connection = Database.getDB("user");
-                string query = @"SELECT * FROM [dbo].[Table]";
-                SqlCommand cmd = new SqlCommand(query, connection);
-                var i = 1;
-            read:
-                var Table = cmd.ExecuteReader();       
-
-                while (true)
-                {
-                    try
-                    {
-                        for (int j = 0; j < i; j++)
-                        {
-                            Table.Read();
-                        }
-                        i++;
-                        send_response(data_string, Table[2].ToString(), Table[0].ToString(), "user", connection);                     
-                        break;
-                    }
-                    catch
-                    {
-                        Console.WriteLine("ERROR");
-                        Console.WriteLine(i);                      
-                        string id = Table[0].ToString();
-                        int fails = int.Parse(Table[1].ToString());
-                        Table.Close();
-
-                        if (fails < 3)
-                        {
-                            string insertquery = $"UPDATE [dbo].[Table] SET errors = ('{fails + 1}') WHERE id = ('{id}')";
-                            SqlCommand cmd3 = new SqlCommand(insertquery, connection);
-                            cmd3.ExecuteNonQuery();
-                        }
-
-                        else
-                        {
-                            string dropquery = $"DELETE FROM [dbo].[Table] WHERE id = '{id}'";
-                            SqlCommand cmd2 = new SqlCommand(dropquery, connection);
-                            cmd2.ExecuteNonQuery();
-                            i--;
-                        }                       
-                        goto read;
-                    }
-                }
+                Database.processRequest("user", data_string,false);
             }
 
             else if (data[0] == "login")
             {
-                SqlConnection connection = Database.getDB("user");
-                string query = @"SELECT * FROM [dbo].[Table]";
-                SqlCommand cmd = new SqlCommand(query, connection);
-                var i = 1;
-            read:
-                var Table = cmd.ExecuteReader();
-
-                while (true)
-                {
-                    try
-                    {
-                        for (int j = 0; j < i; j++)
-                        {
-                            Table.Read();
-                        }
-                        i++;
-                        send_response(data_string, Table[2].ToString(), Table[0].ToString(), "user", connection);
-                        break;
-                    }
-                    catch
-                    {
-                        Console.WriteLine("ERROR");
-                        Console.WriteLine(i);
-                        string id = Table[0].ToString();
-                        int fails = int.Parse(Table[1].ToString());
-                        Table.Close();
-
-                        if (fails < 3)
-                        {
-                            string insertquery = $"UPDATE [dbo].[Table] SET errors = ('{fails + 1}') WHERE id = ('{id}')";
-                            SqlCommand cmd3 = new SqlCommand(insertquery, connection);
-                            cmd3.ExecuteNonQuery();
-                        }
-
-                        else
-                        {
-                            string dropquery = $"DELETE FROM [dbo].[Table] WHERE id = '{id}'";
-                            SqlCommand cmd2 = new SqlCommand(dropquery, connection);
-                            cmd2.ExecuteNonQuery();
-                            i--;
-                        }
-                        goto read;
-                    }
-                }
+                Database.processRequest("user", data_string,false);
             }
 
             else if (data[0] == "connect" || data[0] == "download" || data[0] == "upload")
             {
-                SqlConnection connection = Database.getDB("data");
-                string query = @"SELECT * FROM [dbo].[Table]";
-                SqlCommand cmd = new SqlCommand(query, connection);
-                var i = 1;
-            read:
-                var Table = cmd.ExecuteReader();
-
-                while (true)
-                {
-                    try
-                    {
-                        for (int j = 0; j < i; j++)
-                        {
-                            Table.Read();
-                        }
-                        i++;
-                        send_response(data_string, Table[2].ToString(), Table[0].ToString(), "user", connection);
-                        break;
-                    }
-                    catch
-                    {
-                        Console.WriteLine("ERROR");
-                        Console.WriteLine(i);
-                        string id = Table[0].ToString();
-                        int fails = int.Parse(Table[1].ToString());
-                        Table.Close();
-
-                        if (fails < 3)
-                        {
-                            string insertquery = $"UPDATE [dbo].[Table] SET errors = ('{fails + 1}') WHERE id = ('{id}')";
-                            SqlCommand cmd3 = new SqlCommand(insertquery, connection);
-                            cmd3.ExecuteNonQuery();
-                        }
-
-                        else
-                        {
-                            string dropquery = $"DELETE FROM [dbo].[Table] WHERE id = '{id}'";
-                            SqlCommand cmd2 = new SqlCommand(dropquery, connection);
-                            cmd2.ExecuteNonQuery();
-                            i--;
-                        }
-                        goto read;
-                    }
-                }
+                Database.processRequest("data", data_string,false);
             }
 
             else if (data[0] == "loginNoCache")
             {
-                SqlConnection connection = Database.getDB("cache");
-                string query = @"SELECT * FROM [dbo].[Table]";
-                SqlCommand cmd = new SqlCommand(query, connection);
-                var i = 1;
-            read:
-                var Table = cmd.ExecuteReader();
-
-                while (true)
-                {
-                    try
-                    {
-                        for (int j = 0; j < i; j++)
-                        {
-                            Table.Read();
-                        }
-                        i++;
-                        send_response(data_string, Table[2].ToString(), Table[0].ToString(), "user", connection);
-                        break;
-                    }
-                    catch
-                    {
-                        Console.WriteLine("ERROR");
-                        Console.WriteLine(i);
-                        string id = Table[0].ToString();
-                        int fails = int.Parse(Table[1].ToString());
-                        Table.Close();
-
-                        if (fails < 3)
-                        {
-                            string insertquery = $"UPDATE [dbo].[Table] SET errors = ('{fails + 1}') WHERE id = ('{id}')";
-                            SqlCommand cmd3 = new SqlCommand(insertquery, connection);
-                            cmd3.ExecuteNonQuery();
-                        }
-
-                        else
-                        {
-                            string dropquery = $"DELETE FROM [dbo].[Table] WHERE id = '{id}'";
-                            SqlCommand cmd2 = new SqlCommand(dropquery, connection);
-                            cmd2.ExecuteNonQuery();
-                            i--;
-                        }
-                        goto read;
-                    }
-                }
+                Database.processRequest("cache", data_string,false);
             }
 
             else
             {
-                SqlConnection connection = Database.getDB("cache");
-                string query = @"SELECT * FROM [dbo].[Table]";
-                SqlCommand cmd = new SqlCommand(query, connection);
-                var i = 1;
-            read:
-                var Table = cmd.ExecuteReader();
-
-                while (true)
-                {
-                    try
-                    {
-                        for (int j = 0; j < i; j++)
-                        {
-                            Table.Read();
-                        }
-                        i++;
-                        Console.WriteLine(data_string + " SENT TO CLIENT");
-                        send_response(data_string, Table[2].ToString(), Table[0].ToString(), "user", connection);
-                        send_to_client(data_string);
-                        break;
-                    }
-                    catch
-                    {
-                        Console.WriteLine("ERROR");
-                        Console.WriteLine(i);
-                        string id = Table[0].ToString();
-                        int fails = int.Parse(Table[1].ToString());
-                        Table.Close();
-
-                        if (fails < 3)
-                        {
-                            string insertquery = $"UPDATE [dbo].[Table] SET errors = ('{fails + 1}') WHERE id = ('{id}')";
-                            SqlCommand cmd3 = new SqlCommand(insertquery, connection);
-                            cmd3.ExecuteNonQuery();
-                        }
-
-                        else
-                        {
-                            string dropquery = $"DELETE FROM [dbo].[Table] WHERE id = '{id}'";
-                            SqlCommand cmd2 = new SqlCommand(dropquery, connection);
-                            cmd2.ExecuteNonQuery();
-                            i--;
-                        }
-                        goto read;
-                    }
-                }
+                Database.processRequest("cache", data_string, true);
             }
 
         }
@@ -353,9 +127,6 @@ namespace Gateway
         {
             TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
-            //int round_robin = 0;
-            //string[] logger_ports = { "111", "112" };
-            //int logger_length = logger_ports.Length;
 
             Console.WriteLine("GATEWAY INITIALIZED...");
 
@@ -380,17 +151,6 @@ namespace Gateway
                     string str = new string(user_data);
                     string[] finalData = DataProcessor.wordArray(user_data);
                     Console.WriteLine("Data=" + str);
-
-                    //Console.WriteLine("WOW" + round_robin);
-
-                    //if (round_robin >= logger_length) { round_robin = 0; send_log(finalData[1], "localhost", logger_ports[round_robin]); round_robin++; }
-
-                    //else
-                    // {
-                    //    Console.WriteLine("HERE HERE HERE" + round_robin);
-                    //send_log(finalData[1], "localhost", logger_ports[round_robin]);
-                    //     round_robin++;
-                    //}
 
                     router(finalData, str);
 
