@@ -68,6 +68,7 @@ namespace LoginService
 
         public static void router(string[] data, SqlConnection connection)
         {
+            
             if (data[0] == "signup")
             {
                 signup(data[1], data[2], connection);
@@ -82,6 +83,7 @@ namespace LoginService
             {
                 Communications.send_response("healthRply user", "localhost", 130);
             }
+            
         }
 
 

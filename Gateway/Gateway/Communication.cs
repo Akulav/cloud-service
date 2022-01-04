@@ -12,24 +12,16 @@ namespace Gateway
     {
         public static void send_response(string data, string ip, string port, string service, SqlConnection connection)
         {
-
-           
-                TcpClient tcpClient = new TcpClient(ip, int.Parse(port));   
-                using (NetworkStream ns = tcpClient.GetStream())
+            TcpClient tcpClient = new TcpClient(ip, int.Parse(port));
+            using (NetworkStream ns = tcpClient.GetStream())
+            {
+                using (
+                    BufferedStream bs = new BufferedStream(ns))
                 {
-
-                    using (
-                        BufferedStream bs = new BufferedStream(ns))
-                    {
-                        byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
-                        bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
-                    }
-
+                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
+                    bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
                 }
-            
-            
-           
-
+            }
         }
 
         public static void send_log(string data, string ip, string port)
@@ -113,27 +105,31 @@ namespace Gateway
                 Console.WriteLine("Service: " + data[1] + " is alive.");
             }
 
-            else if (data[0]=="signup")
+            else if (data[0] == "signup")
             {
                 SqlConnection connection = Database.getDB("user");
                 string query = @"SELECT * FROM [dbo].[Table]";
                 SqlCommand cmd = new SqlCommand(query, connection);
-                read:
-                var Table = cmd.ExecuteReader();
+                var i = 1;
+            read:
+                var Table = cmd.ExecuteReader();       
 
-                while (Table.Read())
+                while (true)
                 {
                     try
                     {
-                        //  send_response("health", Table[0].ToString(), Table[2].ToString(), "user", connection);
-                        //Console.WriteLine(data_string + " " + Table[0].ToString() + Table[1].ToString());
-                        send_response(data_string, Table[2].ToString(), Table[0].ToString(), "user", connection);
-                        Table.Close();
+                        for (int j = 0; j < i; j++)
+                        {
+                            Table.Read();
+                        }
+                        i++;
+                        send_response(data_string, Table[2].ToString(), Table[0].ToString(), "user", connection);                     
                         break;
                     }
-                    catch 
+                    catch
                     {
                         Console.WriteLine("ERROR");
+                        Console.WriteLine(i);                      
                         string id = Table[0].ToString();
                         int fails = int.Parse(Table[1].ToString());
                         Table.Close();
@@ -150,37 +146,207 @@ namespace Gateway
                             string dropquery = $"DELETE FROM [dbo].[Table] WHERE id = '{id}'";
                             SqlCommand cmd2 = new SqlCommand(dropquery, connection);
                             cmd2.ExecuteNonQuery();
+                            i--;
+                        }                       
+                        goto read;
+                    }
+                }
+            }
+
+            else if (data[0] == "login")
+            {
+                SqlConnection connection = Database.getDB("user");
+                string query = @"SELECT * FROM [dbo].[Table]";
+                SqlCommand cmd = new SqlCommand(query, connection);
+                var i = 1;
+            read:
+                var Table = cmd.ExecuteReader();
+
+                while (true)
+                {
+                    try
+                    {
+                        for (int j = 0; j < i; j++)
+                        {
+                            Table.Read();
+                        }
+                        i++;
+                        send_response(data_string, Table[2].ToString(), Table[0].ToString(), "user", connection);
+                        break;
+                    }
+                    catch
+                    {
+                        Console.WriteLine("ERROR");
+                        Console.WriteLine(i);
+                        string id = Table[0].ToString();
+                        int fails = int.Parse(Table[1].ToString());
+                        Table.Close();
+
+                        if (fails < 3)
+                        {
+                            string insertquery = $"UPDATE [dbo].[Table] SET errors = ('{fails + 1}') WHERE id = ('{id}')";
+                            SqlCommand cmd3 = new SqlCommand(insertquery, connection);
+                            cmd3.ExecuteNonQuery();
+                        }
+
+                        else
+                        {
+                            string dropquery = $"DELETE FROM [dbo].[Table] WHERE id = '{id}'";
+                            SqlCommand cmd2 = new SqlCommand(dropquery, connection);
+                            cmd2.ExecuteNonQuery();
+                            i--;
                         }
                         goto read;
                     }
-                }         
-            }
-            /*
-            else if (data[0] == "login")
-            {
-                send_response("health", cache[0], cache[1], "cache", connection);
-                send_response(data_string, cache[0], cache[1], "cache", connection);
+                }
             }
 
-            else if (data[0] == "connect" || data[0] == "upload" || data[0] == "download")
+            else if (data[0] == "connect" || data[0] == "download" || data[0] == "upload")
             {
-                send_response("health", dataA[0], dataA[1], "data", connection);
-                send_response(data_string, dataA[0], dataA[1], "data", connection);
+                SqlConnection connection = Database.getDB("data");
+                string query = @"SELECT * FROM [dbo].[Table]";
+                SqlCommand cmd = new SqlCommand(query, connection);
+                var i = 1;
+            read:
+                var Table = cmd.ExecuteReader();
+
+                while (true)
+                {
+                    try
+                    {
+                        for (int j = 0; j < i; j++)
+                        {
+                            Table.Read();
+                        }
+                        i++;
+                        send_response(data_string, Table[2].ToString(), Table[0].ToString(), "user", connection);
+                        break;
+                    }
+                    catch
+                    {
+                        Console.WriteLine("ERROR");
+                        Console.WriteLine(i);
+                        string id = Table[0].ToString();
+                        int fails = int.Parse(Table[1].ToString());
+                        Table.Close();
+
+                        if (fails < 3)
+                        {
+                            string insertquery = $"UPDATE [dbo].[Table] SET errors = ('{fails + 1}') WHERE id = ('{id}')";
+                            SqlCommand cmd3 = new SqlCommand(insertquery, connection);
+                            cmd3.ExecuteNonQuery();
+                        }
+
+                        else
+                        {
+                            string dropquery = $"DELETE FROM [dbo].[Table] WHERE id = '{id}'";
+                            SqlCommand cmd2 = new SqlCommand(dropquery, connection);
+                            cmd2.ExecuteNonQuery();
+                            i--;
+                        }
+                        goto read;
+                    }
+                }
             }
 
             else if (data[0] == "loginNoCache")
             {
-                send_response(data_string, user[0], user[1], "user", connection);
+                SqlConnection connection = Database.getDB("cache");
+                string query = @"SELECT * FROM [dbo].[Table]";
+                SqlCommand cmd = new SqlCommand(query, connection);
+                var i = 1;
+            read:
+                var Table = cmd.ExecuteReader();
+
+                while (true)
+                {
+                    try
+                    {
+                        for (int j = 0; j < i; j++)
+                        {
+                            Table.Read();
+                        }
+                        i++;
+                        send_response(data_string, Table[2].ToString(), Table[0].ToString(), "user", connection);
+                        break;
+                    }
+                    catch
+                    {
+                        Console.WriteLine("ERROR");
+                        Console.WriteLine(i);
+                        string id = Table[0].ToString();
+                        int fails = int.Parse(Table[1].ToString());
+                        Table.Close();
+
+                        if (fails < 3)
+                        {
+                            string insertquery = $"UPDATE [dbo].[Table] SET errors = ('{fails + 1}') WHERE id = ('{id}')";
+                            SqlCommand cmd3 = new SqlCommand(insertquery, connection);
+                            cmd3.ExecuteNonQuery();
+                        }
+
+                        else
+                        {
+                            string dropquery = $"DELETE FROM [dbo].[Table] WHERE id = '{id}'";
+                            SqlCommand cmd2 = new SqlCommand(dropquery, connection);
+                            cmd2.ExecuteNonQuery();
+                            i--;
+                        }
+                        goto read;
+                    }
+                }
             }
 
             else
             {
-                Console.WriteLine(data_string + " WOW");
-                send_to_client(data_string);
-                send_response("health", cache[0], cache[1], "cache", connection);
-                send_response(data_string , cache[0], cache[1], "cache", connection);
+                SqlConnection connection = Database.getDB("cache");
+                string query = @"SELECT * FROM [dbo].[Table]";
+                SqlCommand cmd = new SqlCommand(query, connection);
+                var i = 1;
+            read:
+                var Table = cmd.ExecuteReader();
+
+                while (true)
+                {
+                    try
+                    {
+                        for (int j = 0; j < i; j++)
+                        {
+                            Table.Read();
+                        }
+                        i++;
+                        Console.WriteLine(data_string + " SENT TO CLIENT");
+                        send_response(data_string, Table[2].ToString(), Table[0].ToString(), "user", connection);
+                        send_to_client(data_string);
+                        break;
+                    }
+                    catch
+                    {
+                        Console.WriteLine("ERROR");
+                        Console.WriteLine(i);
+                        string id = Table[0].ToString();
+                        int fails = int.Parse(Table[1].ToString());
+                        Table.Close();
+
+                        if (fails < 3)
+                        {
+                            string insertquery = $"UPDATE [dbo].[Table] SET errors = ('{fails + 1}') WHERE id = ('{id}')";
+                            SqlCommand cmd3 = new SqlCommand(insertquery, connection);
+                            cmd3.ExecuteNonQuery();
+                        }
+
+                        else
+                        {
+                            string dropquery = $"DELETE FROM [dbo].[Table] WHERE id = '{id}'";
+                            SqlCommand cmd2 = new SqlCommand(dropquery, connection);
+                            cmd2.ExecuteNonQuery();
+                            i--;
+                        }
+                        goto read;
+                    }
+                }
             }
-            */
+
         }
 
         public static void listen(int port)
@@ -190,7 +356,7 @@ namespace Gateway
             //int round_robin = 0;
             //string[] logger_ports = { "111", "112" };
             //int logger_length = logger_ports.Length;
- 
+
             Console.WriteLine("GATEWAY INITIALIZED...");
 
             while (true)
@@ -213,17 +379,17 @@ namespace Gateway
 
                     string str = new string(user_data);
                     string[] finalData = DataProcessor.wordArray(user_data);
-                    Console.WriteLine("Data="+str);
+                    Console.WriteLine("Data=" + str);
 
                     //Console.WriteLine("WOW" + round_robin);
 
                     //if (round_robin >= logger_length) { round_robin = 0; send_log(finalData[1], "localhost", logger_ports[round_robin]); round_robin++; }
 
                     //else
-                   // {
+                    // {
                     //    Console.WriteLine("HERE HERE HERE" + round_robin);
-                        //send_log(finalData[1], "localhost", logger_ports[round_robin]);
-                   //     round_robin++;
+                    //send_log(finalData[1], "localhost", logger_ports[round_robin]);
+                    //     round_robin++;
                     //}
 
                     router(finalData, str);
