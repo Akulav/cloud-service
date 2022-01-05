@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.SqlClient;
+using System.IO;
 
 namespace Gateway
 {
@@ -11,25 +12,19 @@ namespace Gateway
             SqlConnection connection = null;
             if (service == "user")
             {
-                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\logins.mdf;Integrated Security=True;Connect Timeout=30";
-                connection = new SqlConnection(connectionString);
-                connection.Open();
-            }
-            else if (service == "logger")
-            {
-                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\loggers.mdf;Integrated Security=True;Connect Timeout=30";
+                string connectionString = $@"AttachDbFilename={Directory.GetCurrentDirectory()+"\\logins.mdf"};Integrated Security=True;Connect Timeout=30";
                 connection = new SqlConnection(connectionString);
                 connection.Open();
             }
             else if (service == "data")
             {
-                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\datas.mdf;Integrated Security=True;Connect Timeout=30";
+                string connectionString = $@"AttachDbFilename={Directory.GetCurrentDirectory() + "\\datas.mdf"};Integrated Security=True;Connect Timeout=30";
                 connection = new SqlConnection(connectionString);
                 connection.Open();
             }
             else if (service == "cache")
             {
-                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\caches.mdf;Integrated Security=True;Connect Timeout=30";
+                string connectionString = $@"AttachDbFilename={Directory.GetCurrentDirectory() + "\\caches.mdf"};Integrated Security=True;Connect Timeout=30";
                 connection = new SqlConnection(connectionString);
                 connection.Open();
             }
