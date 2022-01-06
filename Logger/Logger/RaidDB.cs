@@ -8,38 +8,30 @@ namespace Cache
     {
         public static void createDB(int n)
         {
-
             if (!Directory.Exists(Directory.GetCurrentDirectory() + "\\databases"))
             {
                 Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\databases");
-            }
 
-            for (int i = 0; i < n; i++) 
-            {
-                var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + GenerateName());
-                var con = $@"URI=file:{dbName}";
-                File.WriteAllText(dbName, null);
-                var connection = new SQLiteConnection(con);
-                connection.Open();
-                var cmd = new SQLiteCommand(connection)
+                for (int i = 0; i < n; i++)
                 {
-                    CommandText = @"CREATE TABLE user(id INTEGER PRIMARY KEY, hash VARCRHAR(250), command VARCRHAR(250))"
-                };
-                cmd.ExecuteNonQuery();
-            }    
+                    var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + GenerateName());
+                    var con = $@"URI=file:{dbName}";
+                    File.WriteAllText(dbName, null);
+                    var connection = new SQLiteConnection(con);
+                    connection.Open();
+                    var cmd = new SQLiteCommand(connection)
+                    {
+                        CommandText = @"CREATE TABLE user(id INTEGER PRIMARY KEY, hash VARCRHAR(250), command VARCRHAR(250))"
+                    };
+                    cmd.ExecuteNonQuery();
+                }
+            }          
         }
 
         public static string GenerateName()
         {
             var myUniqueFileName = string.Format(@"{0}.mdf", DateTime.Now.Ticks);
             return myUniqueFileName;
-        }
-
-        public static int setLeader()
-        {
-            string[] files = Directory.GetFiles(Directory.GetCurrentDirectory() + "\\databases", "*.mdf", SearchOption.AllDirectories);
-            Random rnd = new Random();
-            return rnd.Next(files.Length);
         }
 
         public static void writeData(string hash, string data)

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Data.SqlClient;
+using System.Data.SQLite;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -31,7 +31,7 @@ namespace Cache
 
 
 
-        public static void router(string[] data, string data_string, SqlConnection connection)
+        public static void router(string[] data, string data_string, SQLiteConnection connection)
         {
 
 
@@ -41,8 +41,7 @@ namespace Cache
 
                 string reply = Database.checkHash(connection, data[3]);
                 if (reply == null)
-                {
-                    Database.insertCacheHash(connection, data[3]);
+                {                
                     data[0] = "loginNoCache";
                     string converted = String.Join(" ", data);
                     send_response(converted, "localhost", 130);
@@ -69,7 +68,7 @@ namespace Cache
 
         }
 
-        public static void listen(int port, SqlConnection connection)
+        public static void listen(int port, SQLiteConnection connection)
         {
             TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
@@ -98,7 +97,7 @@ namespace Cache
                     string[] finalData = DataProcessor.wordArray(user_data);
                     Console.WriteLine("Data=" + str);
 
-                    Communication.router(finalData, str, connection);
+                    router(finalData, str, connection);
                     
                     client.Close();
                 });

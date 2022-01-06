@@ -1,61 +1,85 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Text;
-using System.Threading;
+using System.Data.SQLite;
+using System.IO;
 
 namespace Cache
 {
     class Database
     {
-        public static SqlConnection connectDB()
+        public static SQLiteConnection connectDB()
         {
-            SqlConnection connection = null;
-            Thread thread = new Thread(() => {
-                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\cache.mdf;Integrated Security=True;Connect Timeout=30";
-                connection = new SqlConnection(connectionString);
-                connection.Open();
+            var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + "cache.mdf");
 
-            });
-            thread.Start();
-            thread.Join();
+            if (!Directory.Exists(Directory.GetCurrentDirectory() + "\\databases"))
+            {
+                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\databases");
+
+
+                var con = $@"URI=file:{dbName}";
+                File.WriteAllText(dbName, null);
+                var connect = new SQLiteConnection(con);
+                connect.Open();
+                var cmd = new SQLiteCommand(connect)
+                {
+                    CommandText = @"CREATE TABLE data(hash VARCHAR(20), reply VARCHAR(20), id INTEGER PRIMARY KEY)"
+                };
+                cmd.ExecuteNonQuery();
+
+            }
+            var conect = $@"URI=file:{dbName}";
+            var connection = new SQLiteConnection(conect);
+            connection.Open();
+
+
             return connection;
         }
 
-        public static void insertCacheHash(SqlConnection connection, string hash)
+        public static void insertCacheReply(SQLiteConnection connection, string reply, string hash)
         {
-            string inserthashquery = $"INSERT INTO [dbo].[Table] (hash) VALUES ('{hash}')";
-            SqlCommand cmd = new SqlCommand(inserthashquery, connection);
-            cmd.ExecuteNonQuery();
-        }
+            Console.WriteLine(reply);
+            Console.WriteLine(hash);
 
-        public static void insertCacheReply(SqlConnection connection, string reply, string hash)
-        {
-            string insertreplyquery = $"UPDATE [dbo].[Table] SET reply = ('{reply}') WHERE hash = ('{hash}')";
-            SqlCommand cmd = new SqlCommand(insertreplyquery, connection);
-            cmd.ExecuteNonQuery();
-        }
-
-        public static string checkHash(SqlConnection connection, string hash)
-        {
-            string checkquery = $"SELECT COUNT(hash)FROM [dbo].[Table] WHERE hash = '{hash}'";
-            string getreplyquery = $"SELECT reply FROM [dbo].[Table] WHERE hash = '{hash}'";
-
-            SqlCommand cmd = new SqlCommand(checkquery, connection);
-            string result = cmd.ExecuteScalar().ToString();
-
-            if (result == "1")
+            try
             {
-                SqlCommand replyget = new SqlCommand(getreplyquery, connection);
-                string reply = replyget.ExecuteScalar().ToString();
                 Console.WriteLine(reply);
-                return reply;
+                Console.WriteLine(hash);
+                var processed_reply = DataProcessor.wordArray(reply.ToCharArray());
+                string insertreplyquery = $"INSERT INTO data (reply,hash, id) VALUES ('{processed_reply[0]}','{hash}', '{processed_reply[1]}')";
+                SQLiteCommand cmd = new SQLiteCommand(insertreplyquery, connection);
+                cmd.ExecuteNonQuery();
             }
 
-            else
+            catch { }
+        }
+
+
+        public static string checkHash(SQLiteConnection connection, string hash)
+        {
+            string getreplyquery = $"SELECT reply FROM data WHERE hash = '{hash}'";
+            string getidquery = $"SELECT id FROM data WHERE hash = '{hash}'";
+
+            SQLiteCommand cmd = new SQLiteCommand(getreplyquery, connection);
+            var table = cmd.ExecuteReader();
+            table.Read();
+            try
             {
-                return null;
+                if (table[0].Equals("1"))
+                {
+                    SQLiteCommand replyget = new SQLiteCommand(getreplyquery, connection);
+                    SQLiteCommand idget = new SQLiteCommand(getidquery, connection);
+                    string reply = replyget.ExecuteScalar().ToString();
+                    string id = idget.ExecuteScalar().ToString();
+                    Console.WriteLine(reply + " " + id);
+                    return reply + " " + id;
+                }
+
+                else
+                {
+                    return null;
+                }
             }
+
+            catch { return null; }
         }
     }
 }

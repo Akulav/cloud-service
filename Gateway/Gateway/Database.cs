@@ -1,38 +1,72 @@
 ﻿using System;
-using System.Data.SqlClient;
+using System.Data.SQLite;
 using System.IO;
 
 namespace Gateway
 {
     class Database
     {
-
-        public static SqlConnection getDB(string service)
+        public static readonly string[] dbNames = { "logins.mdf", "loggers.mdf", "datas.mdf", "caches.mdf" };
+        public static void createDB()
         {
-            SqlConnection connection = null;
+
+            if (!Directory.Exists(Directory.GetCurrentDirectory() + "\\databases"))
+            {
+                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\databases");
+
+                for (int i = 0; i < 4; i++)
+                {
+                    var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[i]);
+                    var con = $@"URI=file:{dbName}";
+                    File.WriteAllText(dbName, null);
+                    var connection = new SQLiteConnection(con);
+                    connection.Open();
+                    var cmd = new SQLiteCommand(connection)
+                    {
+                        CommandText = @"CREATE TABLE data(id INTEGER PRIMARY KEY, errors VARCRHAR(250), ip VARCRHAR(250))"
+                    };
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public static SQLiteConnection getDB(string service)
+        {
+            createDB();
+            SQLiteConnection connection = null;
             if (service == "user")
             {
-                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\logins.mdf;Integrated Security=True;Connect Timeout=30"; connection = new SqlConnection(connectionString);
+                var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[0]);
+                string connectionString = $@"URI=file:{dbName}"; connection = new SQLiteConnection(connectionString);
                 connection.Open();
             }
             else if (service == "data")
             {
-                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\datas.mdf;Integrated Security=True;Connect Timeout=30"; connection = new SqlConnection(connectionString);
+                var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[2]);
+                string connectionString = $@"URI=file:{dbName}"; connection = new SQLiteConnection(connectionString);
                 connection.Open();
             }
             else if (service == "cache")
             {
-                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\caches.mdf;Integrated Security=True;Connect Timeout=30"; connection = new SqlConnection(connectionString);
+                var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[3]);
+                string connectionString = $@"URI=file:{dbName}"; connection = new SQLiteConnection(connectionString);
+                connection.Open();
+            }
+
+            else if (service == "loggers")
+            {
+                var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[1]);
+                string connectionString = $@"URI=file:{dbName}"; connection = new SQLiteConnection(connectionString);
                 connection.Open();
             }
             return connection;
-        }    
+        }
 
         public static void processRequest(string service, string data_string, bool client)
         {
-            SqlConnection connection = getDB(service);
-            string query = @"SELECT * FROM [dbo].[Table]";
-            SqlCommand cmd = new SqlCommand(query, connection);
+            SQLiteConnection connection = getDB(service);
+            string query = @"SELECT * FROM data";
+            SQLiteCommand cmd = new SQLiteCommand(query, connection);
             var i = 1;
         read:
             var Table = cmd.ExecuteReader();
@@ -52,9 +86,9 @@ namespace Gateway
                         Table.Read();
                     }
                     i++;
-                    
-                    Communication.send_response(data_string, Table[2].ToString(), Table[0].ToString(),  connection);
 
+                    Communication.send_response(data_string, Table[2].ToString(), Table[0].ToString());
+                    connection.Dispose();
                     break;
                 }
                 catch
@@ -64,18 +98,19 @@ namespace Gateway
                     string id = Table[0].ToString();
                     int fails = int.Parse(Table[1].ToString());
                     Table.Close();
+                    
 
                     if (fails < 3)
                     {
-                        string insertquery = $"UPDATE [dbo].[Table] SET errors = ('{fails + 1}') WHERE id = ('{id}')";
-                        SqlCommand cmd3 = new SqlCommand(insertquery, connection);
+                        string insertquery = $"UPDATE data SET errors = ('{fails + 1}') WHERE id = ('{id}')";
+                        SQLiteCommand cmd3 = new SQLiteCommand(insertquery, connection);
                         cmd3.ExecuteNonQuery();
                     }
 
                     else
                     {
-                        string dropquery = $"DELETE FROM [dbo].[Table] WHERE id = '{id}'";
-                        SqlCommand cmd2 = new SqlCommand(dropquery, connection);
+                        string dropquery = $"DELETE FROM data WHERE id = '{id}'";
+                        SQLiteCommand cmd2 = new SQLiteCommand(dropquery, connection);
                         cmd2.ExecuteNonQuery();
                         i--;
                     }
@@ -84,13 +119,15 @@ namespace Gateway
             }
         }
 
-
-        public static void insertData(SqlConnection connection, string id, string ip)
+        public static void insertData(SQLiteConnection connection, string id, string ip)
         {
             try
             {
-                string insertquery = $"INSERT INTO [dbo].[table](id, errors, ip) VALUES('{id}', '0', '{ip}')";
-                SqlCommand cmd = new SqlCommand(insertquery, connection);
+                string insertquery = $"INSERT INTO data(id, errors, ip) VALUES('{id}', '0', '{ip}')";
+                var cmd = new SQLiteCommand(connection)
+                {
+                    CommandText = $"INSERT INTO data(id, errors, ip) VALUES('{id}', '0', '{ip}')"
+                };
                 cmd.ExecuteNonQuery();
             }
             catch { }

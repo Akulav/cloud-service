@@ -36,7 +36,6 @@ namespace DataService
             {
                 Directory.CreateDirectory(storageDir);
             }
-
         }
     }
 }

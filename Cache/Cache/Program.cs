@@ -1,4 +1,4 @@
-﻿using System.Data.SqlClient;
+﻿using System.Data.SQLite;
 
 namespace Cache
 {
@@ -6,7 +6,7 @@ namespace Cache
     {
         static void Main(string[] args)
         {
-            SqlConnection connection = Database.connectDB();
+            SQLiteConnection connection = Database.connectDB();
             Communication.send_response("whitelist cache 70 localhost", "localhost", 130);
             Communication.listen(70, connection);
         }

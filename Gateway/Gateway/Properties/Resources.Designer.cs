@@ -59,35 +59,5 @@ namespace Gateway.Properties {
                 resourceCulture = value;
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] caches {
-            get {
-                object obj = ResourceManager.GetObject("caches", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] datas {
-            get {
-                object obj = ResourceManager.GetObject("datas", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] logins {
-            get {
-                object obj = ResourceManager.GetObject("logins", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data.SqlClient;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -10,7 +9,7 @@ namespace Gateway
 {
     class Communication
     {
-        public static void send_response(string data, string ip, string port, SqlConnection connection)
+        public static void send_response(string data, string ip, string port)
         {
             TcpClient tcpClient = new TcpClient(ip, int.Parse(port));
             using (NetworkStream ns = tcpClient.GetStream())
@@ -73,7 +72,7 @@ namespace Gateway
 
             else if (data[0] == "signup")
             {
-                Database.processRequest("user", data_string,false);
+                Database.processRequest("user", data_string, false);
             }
 
             else if (data[0] == "login")
@@ -83,12 +82,12 @@ namespace Gateway
 
             else if (data[0] == "connect" || data[0] == "download" || data[0] == "upload")
             {
-                Database.processRequest("data", data_string,false);
+                Database.processRequest("data", data_string, false);
             }
 
             else if (data[0] == "loginNoCache")
             {
-                Database.processRequest("user", data_string,false);
+                Database.processRequest("user", data_string, false);
             }
 
             else

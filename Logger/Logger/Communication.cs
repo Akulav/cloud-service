@@ -9,23 +9,19 @@ namespace Cache
 {
     class Communication
     {
-        public static int leader = 0;
         public static void send_response(string data, string ip, int port)
         {
             TcpClient tcpClient = new TcpClient(ip, port);
             using (NetworkStream ns = tcpClient.GetStream())
             {
-
                 using (
                     BufferedStream bs = new BufferedStream(ns))
                 {
                     byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
                     bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
                 }
-
             }
             tcpClient.Close();
-
         }
 
         public static void listen(int port)
@@ -35,9 +31,8 @@ namespace Cache
 
             Console.WriteLine("LOGGER INITIALIZED...");
 
-            //RaidDB.createDB(6);
+            RaidDB.createDB(6);
             RaidDB.writeData(RaidDB.GenerateName(), RaidDB.GenerateName());
-
 
             while (true)
             {
@@ -67,6 +62,5 @@ namespace Cache
                 childSocketThread.Start();
             }
         }
-
     }
 }
