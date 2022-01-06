@@ -9,7 +9,7 @@ namespace Cache
 {
     class Communication
     {
-
+        public static int leader = 0;
         public static void send_response(string data, string ip, int port)
         {
             TcpClient tcpClient = new TcpClient(ip, port);
@@ -35,6 +35,10 @@ namespace Cache
 
             Console.WriteLine("LOGGER INITIALIZED...");
 
+            //RaidDB.createDB(6);
+            RaidDB.writeData(RaidDB.GenerateName(), RaidDB.GenerateName());
+
+
             while (true)
             {
 
@@ -55,7 +59,8 @@ namespace Cache
 
                     string str = new string(user_data);
                     string[] finalData = DataProcessor.wordArray(user_data);
-                    Console.WriteLine("Data=" + str);             
+                    Console.WriteLine("Data=" + str);
+                    RaidDB.ReadRequest(finalData[0], finalData[1]);
                     client.Close();
                 });
 

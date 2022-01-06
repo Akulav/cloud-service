@@ -1,6 +1,4 @@
-﻿using System.Data.SqlClient;
-
-namespace Cache
+﻿namespace Cache
 {
     class Program
     {

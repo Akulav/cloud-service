@@ -12,20 +12,17 @@ namespace Gateway
             SqlConnection connection = null;
             if (service == "user")
             {
-                string connectionString = $@"AttachDbFilename={Directory.GetCurrentDirectory()+"\\logins.mdf"};Integrated Security=True;Connect Timeout=30";
-                connection = new SqlConnection(connectionString);
+                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\logins.mdf;Integrated Security=True;Connect Timeout=30"; connection = new SqlConnection(connectionString);
                 connection.Open();
             }
             else if (service == "data")
             {
-                string connectionString = $@"AttachDbFilename={Directory.GetCurrentDirectory() + "\\datas.mdf"};Integrated Security=True;Connect Timeout=30";
-                connection = new SqlConnection(connectionString);
+                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\datas.mdf;Integrated Security=True;Connect Timeout=30"; connection = new SqlConnection(connectionString);
                 connection.Open();
             }
             else if (service == "cache")
             {
-                string connectionString = $@"AttachDbFilename={Directory.GetCurrentDirectory() + "\\caches.mdf"};Integrated Security=True;Connect Timeout=30";
-                connection = new SqlConnection(connectionString);
+                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\akula\Documents\caches.mdf;Integrated Security=True;Connect Timeout=30"; connection = new SqlConnection(connectionString);
                 connection.Open();
             }
             return connection;
@@ -44,17 +41,19 @@ namespace Gateway
             {
                 try
                 {
+                    if (client)
+                    {
+                        Console.WriteLine("sent to client.");
+                        Communication.send_to_client(data_string);
+                    }
+
                     for (int j = 0; j < i; j++)
                     {
                         Table.Read();
                     }
                     i++;
+                    
                     Communication.send_response(data_string, Table[2].ToString(), Table[0].ToString(),  connection);
-
-                    if (client)
-                    {
-                        Communication.send_to_client(data_string);
-                    }
 
                     break;
                 }

@@ -78,7 +78,7 @@ namespace Gateway
 
             else if (data[0] == "login")
             {
-                Database.processRequest("user", data_string,false);
+                Database.processRequest("cache", data_string, false);
             }
 
             else if (data[0] == "connect" || data[0] == "download" || data[0] == "upload")
@@ -88,11 +88,12 @@ namespace Gateway
 
             else if (data[0] == "loginNoCache")
             {
-                Database.processRequest("cache", data_string,false);
+                Database.processRequest("user", data_string,false);
             }
 
             else
             {
+                Console.WriteLine("sending to client...");
                 Database.processRequest("cache", data_string, true);
             }
 
