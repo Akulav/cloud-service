@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data.SQLite;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -31,7 +30,7 @@ namespace Cache
 
 
 
-        public static void router(string[] data, string data_string, SQLiteConnection connection)
+        public static void router(string[] data, string data_string)
         {
 
 
@@ -39,7 +38,7 @@ namespace Cache
             if (data[0] == "login")
             {
 
-                string reply = Database.checkHash(connection, data[3]);
+                string reply = Database.checkHash(data[3]);
                 if (reply == null)
                 {                
                     data[0] = "loginNoCache";
@@ -63,12 +62,12 @@ namespace Cache
             else
             {
                 Console.WriteLine("TO BE CACHED:" + data_string);
-                Database.insertCacheReply(connection, data_string, data[data.Length - 1]);
+                Database.insertCacheReply(data_string, data[data.Length - 1]);
             }
 
         }
 
-        public static void listen(int port, SQLiteConnection connection)
+        public static void listen(int port)
         {
             TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
@@ -97,7 +96,7 @@ namespace Cache
                     string[] finalData = DataProcessor.wordArray(user_data);
                     Console.WriteLine("Data=" + str);
 
-                    router(finalData, str, connection);
+                    router(finalData, str);
                     
                     client.Close();
                 });

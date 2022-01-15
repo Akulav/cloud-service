@@ -172,7 +172,7 @@ namespace Gateway
                     string str = new string(user_data);
                     string[] finalData = DataProcessor.wordArray(user_data);
                     Console.WriteLine("Data=" + str);
-                    broadcast("write Meow");
+                    //broadcast("write Meow");
                     router(finalData, str);
 
                     client.Close();
