@@ -1,38 +1,39 @@
 ﻿using System;
+using System.Data.SQLite;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace Cache
+namespace DB1
 {
-    class Communication
+    class Communications
     {
         public static void send_response(string data, string ip, int port)
         {
             TcpClient tcpClient = new TcpClient(ip, port);
             using (NetworkStream ns = tcpClient.GetStream())
             {
+
                 using (
                     BufferedStream bs = new BufferedStream(ns))
                 {
                     byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
                     bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
                 }
+
             }
             tcpClient.Close();
+
         }
 
-        public static void listen(int port)
+        public static void listen(int port, SQLiteConnection connection)
         {
             TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
 
-            Console.WriteLine("LOGGER INITIALIZED...");
-
-            RaidDB.createDB(6);
-            RaidDB.writeData(RaidDB.GenerateName(), RaidDB.GenerateName());
+            Console.WriteLine("DB-SERVICE INITIALIZED...");
 
             while (true)
             {
@@ -54,8 +55,9 @@ namespace Cache
 
                     string str = new string(user_data);
                     string[] finalData = DataProcessor.wordArray(user_data);
-                    Console.WriteLine("Data=" + str);
-                    RaidDB.ReadRequest(finalData[0], finalData[1]);
+                    Console.WriteLine("DATA="+str);
+                    Database.router(finalData, connection);
+
                     client.Close();
                 });
 

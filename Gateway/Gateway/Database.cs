@@ -6,7 +6,7 @@ namespace Gateway
 {
     class Database
     {
-        public static readonly string[] dbNames = { "logins.mdf", "loggers.mdf", "datas.mdf", "caches.mdf" };
+        public static readonly string[] dbNames = { "logins.mdf", "loggers.mdf", "datas.mdf", "caches.mdf", "dbs.mdf", "replication.mdf" };
         public static void createDB()
         {
 
@@ -14,7 +14,7 @@ namespace Gateway
             {
                 Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\databases");
 
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < 5; i++)
                 {
                     var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[i]);
                     var con = $@"URI=file:{dbName}";
@@ -27,6 +27,17 @@ namespace Gateway
                     };
                     cmd.ExecuteNonQuery();
                 }
+
+                var db = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[5]);
+                var connect = $@"URI=file:{db}";
+                File.WriteAllText(db, null);
+                var conn = new SQLiteConnection(connect);
+                conn.Open();
+                var command = new SQLiteCommand(conn)
+                {
+                    CommandText = @"CREATE TABLE data(id INTEGER PRIMARY KEY, data VARCHAR(250), ip VARCRHAR(250), port VARCRHAR(250))"
+                };
+                command.ExecuteNonQuery();
             }
         }
 
@@ -53,9 +64,16 @@ namespace Gateway
                 connection.Open();
             }
 
-            else if (service == "loggers")
+            else if (service == "db")
             {
-                var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[1]);
+                var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[4]);
+                string connectionString = $@"URI=file:{dbName}"; connection = new SQLiteConnection(connectionString);
+                connection.Open();
+            }
+
+            else if (service == "replication")
+            {
+                var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[5]);
                 string connectionString = $@"URI=file:{dbName}"; connection = new SQLiteConnection(connectionString);
                 connection.Open();
             }
@@ -98,7 +116,7 @@ namespace Gateway
                     string id = Table[0].ToString();
                     int fails = int.Parse(Table[1].ToString());
                     Table.Close();
-                    
+
 
                     if (fails < 3)
                     {
@@ -127,6 +145,19 @@ namespace Gateway
                 var cmd = new SQLiteCommand(connection)
                 {
                     CommandText = $"INSERT INTO data(id, errors, ip) VALUES('{id}', '0', '{ip}')"
+                };
+                cmd.ExecuteNonQuery();
+            }
+            catch { }
+        }
+
+        public static void insertError(SQLiteConnection connection, string data, string ip, string port)
+        {
+            try
+            {
+                var cmd = new SQLiteCommand(connection)
+                {
+                    CommandText = $"INSERT INTO data(data, ip, port) VALUES('{data}', '{ip}', '{port}')"
                 };
                 cmd.ExecuteNonQuery();
             }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.SQLite;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -51,15 +52,15 @@ namespace Gateway
                 {
                     Database.insertData(Database.getDB("user"), data[2], data[3]);
                 }
-                if (data[1] == "logger")
+                else if (data[1] == "logger")
                 {
                     Database.insertData(Database.getDB("logger"), data[2], data[3]);
                 }
-                if (data[1] == "data")
+                else if (data[1] == "data")
                 {
                     Database.insertData(Database.getDB("data"), data[2], data[3]);
                 }
-                if (data[1] == "cache")
+                else if (data[1] == "cache")
                 {
                     Database.insertData(Database.getDB("cache"), data[2], data[3]);
                 }
@@ -98,6 +99,51 @@ namespace Gateway
 
         }
 
+        public static void broadcast(string data)
+        {
+            try { send_response(data, "localhost", "15001"); } catch { Database.insertError(Database.getDB("replication"), data, "localhost", "15001"); }
+            try { send_response(data, "localhost", "15002"); } catch { Database.insertError(Database.getDB("replication"), data, "localhost", "15002"); }
+            try { send_response(data, "localhost", "15003"); } catch { Database.insertError(Database.getDB("replication"), data, "localhost", "15003"); }
+
+            string id = null;
+            string[] ids = new string[50];
+            int index = 0;
+            SQLiteConnection con = Database.getDB("replication");
+                var cmd = new SQLiteCommand(con)
+                {
+                    CommandText = @"SELECT * FROM data"
+                };
+                var Table = cmd.ExecuteReader();
+                while (Table.Read())
+                {
+                ids[index] = Table[0].ToString();
+                index++;  
+                }
+            cmd.Dispose();
+            Table.Close();
+
+            for (int i = 0; i < ids.Length; i++)
+            {
+                var cmd1 = new SQLiteCommand(con)
+                {
+                    CommandText = @$"SELECT * FROM data WHERE id = '{ids[i]}'"
+                };
+                var Table1 = cmd1.ExecuteReader();
+                Table1.Read();
+                try { 
+                    send_response(Table1[1].ToString(), Table1[2].ToString(), Table1[3].ToString());
+                    Table1.Close();
+                    var command2 = new SQLiteCommand(con)
+                    {
+                        CommandText = $"DELETE FROM data WHERE id = '{ids[i]}'"
+                    };
+                    command2.ExecuteNonQuery();
+                }
+                catch { cmd1.Dispose(); Table1.Close(); }
+            }  
+
+        }
+
         public static void listen(int port)
         {
             TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
@@ -126,7 +172,7 @@ namespace Gateway
                     string str = new string(user_data);
                     string[] finalData = DataProcessor.wordArray(user_data);
                     Console.WriteLine("Data=" + str);
-
+                    broadcast("write Meow");
                     router(finalData, str);
 
                     client.Close();
