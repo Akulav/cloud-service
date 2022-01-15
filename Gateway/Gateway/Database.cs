@@ -6,8 +6,8 @@ namespace Gateway
 {
     class Database
     {
-        public static readonly string[] dbNames = { "logins.mdf", "loggers.mdf", "datas.mdf", "caches.mdf", "dbs.mdf", "replication.mdf" };
-        public static void createDB()
+        public static readonly string[] dbNames = { "logins.mdf", "datas.mdf", "caches.mdf", "replication.mdf" };
+        public static void CreateDB()
         {
 
             if (!Directory.Exists(Directory.GetCurrentDirectory() + "\\databases"))
@@ -28,7 +28,7 @@ namespace Gateway
                     cmd.ExecuteNonQuery();
                 }
 
-                var db = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[5]);
+                var db = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[3]);
                 var connect = $@"URI=file:{db}";
                 File.WriteAllText(db, null);
                 var conn = new SQLiteConnection(connect);
@@ -41,9 +41,9 @@ namespace Gateway
             }
         }
 
-        public static SQLiteConnection getDB(string service)
+        public static SQLiteConnection GetDB(string service)
         {
-            createDB();
+            CreateDB();
             SQLiteConnection connection = null;
             if (service == "user")
             {
@@ -53,36 +53,29 @@ namespace Gateway
             }
             else if (service == "data")
             {
-                var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[2]);
+                var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[1]);
                 string connectionString = $@"URI=file:{dbName}"; connection = new SQLiteConnection(connectionString);
                 connection.Open();
             }
             else if (service == "cache")
             {
-                var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[3]);
-                string connectionString = $@"URI=file:{dbName}"; connection = new SQLiteConnection(connectionString);
-                connection.Open();
-            }
-
-            else if (service == "db")
-            {
-                var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[4]);
+                var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[2]);
                 string connectionString = $@"URI=file:{dbName}"; connection = new SQLiteConnection(connectionString);
                 connection.Open();
             }
 
             else if (service == "replication")
             {
-                var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[5]);
+                var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[3]);
                 string connectionString = $@"URI=file:{dbName}"; connection = new SQLiteConnection(connectionString);
                 connection.Open();
             }
             return connection;
         }
 
-        public static void processRequest(string service, string data_string, bool client)
+        public static void ProcessRequest(string service, string data_string, bool client)
         {
-            SQLiteConnection connection = getDB(service);
+            SQLiteConnection connection = GetDB(service);
             string query = @"SELECT * FROM data";
             SQLiteCommand cmd = new SQLiteCommand(query, connection);
             var i = 1;
@@ -96,7 +89,7 @@ namespace Gateway
                     if (client)
                     {
                         Console.WriteLine("sent to client.");
-                        Communication.send_to_client(data_string);
+                        Communication.Send_response(data_string, "localhost","13");
                     }
 
                     for (int j = 0; j < i; j++)
@@ -105,7 +98,7 @@ namespace Gateway
                     }
                     i++;
 
-                    Communication.send_response(data_string, Table[2].ToString(), Table[0].ToString());
+                    Communication.Send_response(data_string, Table[2].ToString(), Table[0].ToString());
                     connection.Dispose();
                     break;
                 }
@@ -137,7 +130,7 @@ namespace Gateway
             }
         }
 
-        public static void insertData(SQLiteConnection connection, string id, string ip)
+        public static void InsertData(SQLiteConnection connection, string id, string ip)
         {
             try
             {
@@ -151,7 +144,7 @@ namespace Gateway
             catch { }
         }
 
-        public static void insertError(SQLiteConnection connection, string data, string ip, string port)
+        public static void InsertError(SQLiteConnection connection, string data, string ip, string port)
         {
             try
             {

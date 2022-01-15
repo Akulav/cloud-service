@@ -10,59 +10,35 @@ namespace Gateway
 {
     class Communication
     {
-        public static void send_response(string data, string ip, string port)
+        public static void Send_response(string data, string ip, string port)
         {
             TcpClient tcpClient = new TcpClient(ip, int.Parse(port));
-            using (NetworkStream ns = tcpClient.GetStream())
-            {
-                using (
-                    BufferedStream bs = new BufferedStream(ns))
-                {
-                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
-                    bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
-                }
-            }
+            using NetworkStream ns = tcpClient.GetStream();
+            using BufferedStream bs = new BufferedStream(ns);
+            byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
+            bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
         }
 
-        public static void send_to_client(string data)
-        {
-
-            TcpClient tcpClient = new TcpClient("localHost", 13);
-            using (NetworkStream ns = tcpClient.GetStream())
-            {
-
-                using (
-                    BufferedStream bs = new BufferedStream(ns))
-                {
-                    byte[] messageBytesToSend = Encoding.UTF8.GetBytes(data);
-                    bs.Write(messageBytesToSend, 0, messageBytesToSend.Length);
-                }
-
-            }
-            tcpClient.Close();
-
-        }
-
-        public static void router(string[] data, string data_string)
+        public static void Router(string[] data, string data_string)
         {
 
             if (data[0] == "whitelist")
             {
                 if (data[1] == "user")
                 {
-                    Database.insertData(Database.getDB("user"), data[2], data[3]);
+                    Database.InsertData(Database.GetDB("user"), data[2], data[3]);
                 }
                 else if (data[1] == "logger")
                 {
-                    Database.insertData(Database.getDB("logger"), data[2], data[3]);
+                    Database.InsertData(Database.GetDB("logger"), data[2], data[3]);
                 }
                 else if (data[1] == "data")
                 {
-                    Database.insertData(Database.getDB("data"), data[2], data[3]);
+                    Database.InsertData(Database.GetDB("data"), data[2], data[3]);
                 }
                 else if (data[1] == "cache")
                 {
-                    Database.insertData(Database.getDB("cache"), data[2], data[3]);
+                    Database.InsertData(Database.GetDB("cache"), data[2], data[3]);
                 }
             }
 
@@ -73,78 +49,72 @@ namespace Gateway
 
             else if (data[0] == "signup")
             {
-                Database.processRequest("user", data_string, false);
+                Database.ProcessRequest("user", data_string, false);
             }
 
             else if (data[0] == "login")
             {
-                Database.processRequest("cache", data_string, false);
+                Database.ProcessRequest("cache", data_string, false);
             }
 
             else if (data[0] == "connect" || data[0] == "download" || data[0] == "upload")
             {
-                Database.processRequest("data", data_string, false);
+                Database.ProcessRequest("data", data_string, false);
             }
 
             else if (data[0] == "loginNoCache")
             {
-                Database.processRequest("user", data_string, false);
+                Database.ProcessRequest("user", data_string, false);
             }
 
             else
             {
                 Console.WriteLine("sending to client...");
-                Database.processRequest("cache", data_string, true);
+                Database.ProcessRequest("cache", data_string, true);
             }
 
         }
 
-        public static void broadcast(string data)
+        public static void Broadcast(string data)
         {
-            try { send_response(data, "localhost", "15001"); } catch { Database.insertError(Database.getDB("replication"), data, "localhost", "15001"); }
-            try { send_response(data, "localhost", "15002"); } catch { Database.insertError(Database.getDB("replication"), data, "localhost", "15002"); }
-            try { send_response(data, "localhost", "15003"); } catch { Database.insertError(Database.getDB("replication"), data, "localhost", "15003"); }
+            try { Send_response(data, "localhost", "15001"); } catch { Database.InsertError(Database.GetDB("replication"), data, "localhost", "15001"); }
+            try { Send_response(data, "localhost", "15002"); } catch { Database.InsertError(Database.GetDB("replication"), data, "localhost", "15002"); }
+            try { Send_response(data, "localhost", "15003"); } catch { Database.InsertError(Database.GetDB("replication"), data, "localhost", "15003"); }
 
-            string id = null;
-            string[] ids = new string[50];
-            int index = 0;
-            SQLiteConnection con = Database.getDB("replication");
-                var cmd = new SQLiteCommand(con)
-                {
-                    CommandText = @"SELECT * FROM data"
-                };
-                var Table = cmd.ExecuteReader();
-                while (Table.Read())
-                {
-                ids[index] = Table[0].ToString();
-                index++;  
-                }
-            cmd.Dispose();
-            Table.Close();
+            SQLiteConnection con = Database.GetDB("replication");
 
-            for (int i = 0; i < ids.Length; i++)
+            var read = new SQLiteCommand(con)
             {
-                var cmd1 = new SQLiteCommand(con)
-                {
-                    CommandText = @$"SELECT * FROM data WHERE id = '{ids[i]}'"
-                };
-                var Table1 = cmd1.ExecuteReader();
-                Table1.Read();
-                try { 
-                    send_response(Table1[1].ToString(), Table1[2].ToString(), Table1[3].ToString());
-                    Table1.Close();
-                    var command2 = new SQLiteCommand(con)
-                    {
-                        CommandText = $"DELETE FROM data WHERE id = '{ids[i]}'"
-                    };
-                    command2.ExecuteNonQuery();
-                }
-                catch { cmd1.Dispose(); Table1.Close(); }
-            }  
+                CommandText = @"SELECT * FROM data"
+            };
 
+            var Table = read.ExecuteReader();
+
+            while (Table.Read())
+            {
+                broadAsync(Table[0].ToString(), Table[1].ToString(), Table[2].ToString(), Table[3].ToString(), con);
+            }
         }
 
-        public static void listen(int port)
+        public static void broadAsync(string id, string data, string ip, string port, SQLiteConnection con)
+        {
+                Thread thread = new Thread(delegate ()
+                {
+                    try
+                    {
+                        Send_response(data, ip, port);
+                        var delete = new SQLiteCommand(con)
+                        {
+                            CommandText = $"DELETE FROM data WHERE id = '{id}'"
+                        };
+                        delete.ExecuteNonQuery();
+                    }
+                    catch { }
+                });
+            thread.Start();
+        }
+
+        public static void Listen(int port)
         {
             TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
@@ -172,8 +142,8 @@ namespace Gateway
                     string str = new string(user_data);
                     string[] finalData = DataProcessor.wordArray(user_data);
                     Console.WriteLine("Data=" + str);
-                    //broadcast("write Meow");
-                    router(finalData, str);
+                    Broadcast("write Meow");
+                    Router(finalData, str);
 
                     client.Close();
                 });
