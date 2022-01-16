@@ -24,18 +24,9 @@ namespace DataService
 
         public static void initializeDataSet(string user)
         {
-            string root = @"C:\";
-            string storageDir = @"C:\cloud\" + user;
-
-            if (!Directory.Exists(root))
-            {
-                Directory.CreateDirectory(root);
-            }
-
-            if (!Directory.Exists(storageDir))
-            {
-                Directory.CreateDirectory(storageDir);
-            }
+            
+                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + user);
+           
         }
     }
 }

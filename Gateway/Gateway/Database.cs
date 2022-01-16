@@ -14,7 +14,7 @@ namespace Gateway
             {
                 Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\databases");
 
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < dbNames.Length-1; i++)
                 {
                     var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[i]);
                     var con = $@"URI=file:{dbName}";
@@ -90,6 +90,7 @@ namespace Gateway
                     {
                         Console.WriteLine("sent to client.");
                         Communication.Send_response(data_string, "localhost","13");
+                        break;
                     }
 
                     for (int j = 0; j < i; j++)

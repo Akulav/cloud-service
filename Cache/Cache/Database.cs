@@ -15,7 +15,7 @@ namespace Cache
             {
                 Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\databases");
 
-                for (int i = 0; i < 2; i++)
+                for (int i = 0; i < dbNames.Length; i++)
                 {
                     var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[i]);
                     var con = $@"URI=file:{dbName}";
@@ -24,7 +24,7 @@ namespace Cache
                     connection.Open();
                     var cmd = new SQLiteCommand(connection)
                     {
-                        CommandText = @"CREATE TABLE data(hash VARCHAR(20), reply VARCHAR(20), id INTEGER PRIMARY KEY)"
+                        CommandText = @"CREATE TABLE data(hash VARCHAR(20), reply VARCHAR(20), id INTEGER)"
                     };
                     cmd.ExecuteNonQuery();
                 }
@@ -51,6 +51,7 @@ namespace Cache
 
         public static string checkHash(string hash)
         {
+            createDB();
             string getreplyquery = $"SELECT reply FROM data WHERE hash = '{hash}'";
             string getidquery = $"SELECT id FROM data WHERE hash = '{hash}'";
 

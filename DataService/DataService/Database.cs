@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.Data.SQLite;
 using System.IO;
 using System.Text;
-using System.Threading;
 
 namespace DataService
 {
     class Database
     {
-        public static void router(string[] data, SqlConnection connection)
+        public static void router(string[] data, SQLiteConnection connection)
         {
             if (data[0] == "connect")
             {
@@ -26,43 +24,55 @@ namespace DataService
             {
                 download(data[1]);
             }
-
-            else if (data[0] == "health")
-            {
-                Communications.send_response("healthRply data", "localhost", 130);
-            }
-
         }
 
-        public static void connect(string id, SqlConnection connection)
+        public static void CreateDB()
         {
-            string salt = DataProcessor.RandomString(255);
-            string insert_id = $"SELECT Count(id) FROM [dbo].[passwords] WHERE id = '{id}'";
 
-            SqlCommand cmd = new SqlCommand(insert_id, connection);
+            if (!Directory.Exists(Directory.GetCurrentDirectory() + "\\databases"))
+            {
+                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\databases");
+
+               
+                    var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + "data.mdf");
+                    var con = $@"URI=file:{dbName}";
+                    File.WriteAllText(dbName, null);
+                    var connection = new SQLiteConnection(con);
+                    connection.Open();
+                    var cmd = new SQLiteCommand(connection)
+                    {
+                        CommandText = @"CREATE TABLE data(id VARCHAR(250), storage VARCRHAR(250), salt VARCRHAR(250))"
+                    };
+                    cmd.ExecuteNonQuery();
+            }
+        }
+
+        public static void connect(string id, SQLiteConnection connection)
+        {
+            
+            string salt = DataProcessor.RandomString(255);
+            string insert_id = $"SELECT Count(id) FROM data WHERE id = '{id}'";
+
+            SQLiteCommand cmd = new SQLiteCommand(insert_id, connection);
             string result = cmd.ExecuteScalar().ToString();
+            Console.WriteLine(result);
 
             if (result == "0")
             {
-                string insertuserquery = $"INSERT INTO [dbo].[passwords] (id, storage, salt) VALUES ('{id}','1','{salt}')";
-                SqlCommand insertcmd = new SqlCommand(insertuserquery, connection);
+                string insertuserquery = $"INSERT INTO data (id, storage, salt) VALUES ('{id}','1','{salt}')";
+                SQLiteCommand insertcmd = new SQLiteCommand(insertuserquery, connection);
                 insertcmd.ExecuteNonQuery();
 
                 DataProcessor.initializeDataSet(id);
             }
         }
 
-        public static SqlConnection connectDB()
+        public static SQLiteConnection connectDB()
         {
-            SqlConnection connection = null;
-            Thread thread = new Thread(() => {
-                string connectionString = @"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = C:\Users\akula\Documents\data.mdf; Integrated Security = True; Connect Timeout = 30";
-                connection = new SqlConnection(connectionString);
-                connection.Open();
-
-            });
-            thread.Start();
-            thread.Join();
+            CreateDB();
+            var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + "data.mdf");
+            string connectionString = $@"URI=file:{dbName}";SQLiteConnection connection = new SQLiteConnection(connectionString);
+            connection.Open();
             return connection;
         }
 
@@ -71,7 +81,7 @@ namespace DataService
             Random rnd = new Random();
             string filename = Crypto.GenerateRandomAlphanumericString(rnd.Next(50, 150));
 
-            string location = "c:\\cloud\\" + data[1] + "\\" + filename +".wtf";
+            string location = (Directory.GetCurrentDirectory()+ "\\" + data[1] + "\\" + filename +".wtf");
             
             using (StreamWriter writer = new StreamWriter(@location))
             {
@@ -85,7 +95,7 @@ namespace DataService
 
         public static void download(string id)
         {
-            string fileLocation = "c:\\cloud\\" + id + "\\";
+            string fileLocation = (Directory.GetCurrentDirectory() + "\\" + id + "\\");
             string[] fileList = Directory.GetFiles(fileLocation);
             StringBuilder sb = new StringBuilder();
 
