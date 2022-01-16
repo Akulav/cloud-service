@@ -83,29 +83,16 @@ namespace LoginService
 
             if (data[0] == "signup")
             {
-                //Communications.send_response("localhost 13004", "localhost", 70); //sends data to logger
-
                 signup(data[1], data[2], connection);
             }
 
             else if (data[0] == "login" || data[0] == "loginNoCache")
             {
-                Communications.send_response("localhost 13004", "localhost", 70); //sends data to logger
-
                 login(data[1], data[2], data[3], connection);
-            }
-
-            else if (data[0] == "health")
-            {
-                Communications.send_response("localhost 13004", "localhost", 111); //sends data to logger
-
-                Communications.send_response("healthRply user", "localhost", 130);
             }
 
             else { Console.WriteLine(data[0]); }
             
         }
-
-
     }
 }

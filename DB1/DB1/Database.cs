@@ -43,16 +43,29 @@ namespace DB1
         public static void router(string[] data, SQLiteConnection connection)
         {
 
-            if (data[0] == "write")
+
+
+            if (data[0] == "read")
             {
-                write(connection, data[1]);
+                string readquery = $"SELECT * FROM data";
+                SQLiteCommand cmd = new SQLiteCommand(readquery, connection);
+                var Table = cmd.ExecuteReader();
+                while(Table.Read()){
+                    try
+                    {
+                        Communications.send_response("sync" + " " +Table[1].ToString(), "localhost", int.Parse(data[2]));
+                    }
+                    catch { }
+                }
+               
             }
 
-            else if (data[0] == "read")
+            else 
             {
-
+                if (data[1].Length > 4) { write(connection, data[0] + " " + data[1] + " " + data[2]); }
+               
             }
-            
+
         }
 
 

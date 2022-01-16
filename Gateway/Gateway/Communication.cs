@@ -42,11 +42,6 @@ namespace Gateway
                 }
             }
 
-            else if (data[0] == "healthRply")
-            {
-                Console.WriteLine("Service: " + data[1] + " is alive.");
-            }
-
             else if (data[0] == "signup")
             {
                 Database.ProcessRequest("user", data_string, false);
@@ -71,49 +66,11 @@ namespace Gateway
             {
                 Console.WriteLine("sending to client...");
                 Database.ProcessRequest("cache", data_string, true);
+                Console.WriteLine("SENDING TO CACHE: " + data_string);
             }
 
         }
-
-        public static void Broadcast(string data)
-        {
-            try { Send_response(data, "localhost", "15001"); } catch { Database.InsertError(Database.GetDB("replication"), data, "localhost", "15001"); }
-            try { Send_response(data, "localhost", "15002"); } catch { Database.InsertError(Database.GetDB("replication"), data, "localhost", "15002"); }
-            try { Send_response(data, "localhost", "15003"); } catch { Database.InsertError(Database.GetDB("replication"), data, "localhost", "15003"); }
-
-            SQLiteConnection con = Database.GetDB("replication");
-
-            var read = new SQLiteCommand(con)
-            {
-                CommandText = @"SELECT * FROM data"
-            };
-
-            var Table = read.ExecuteReader();
-
-            while (Table.Read())
-            {
-                broadAsync(Table[0].ToString(), Table[1].ToString(), Table[2].ToString(), Table[3].ToString(), con);
-            }
-        }
-
-        public static void broadAsync(string id, string data, string ip, string port, SQLiteConnection con)
-        {
-                Thread thread = new Thread(delegate ()
-                {
-                    try
-                    {
-                        Send_response(data, ip, port);
-                        var delete = new SQLiteCommand(con)
-                        {
-                            CommandText = $"DELETE FROM data WHERE id = '{id}'"
-                        };
-                        delete.ExecuteNonQuery();
-                    }
-                    catch { }
-                });
-            thread.Start();
-        }
-
+       
         public static void Listen(int port)
         {
             TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
@@ -142,7 +99,6 @@ namespace Gateway
                     string str = new string(user_data);
                     string[] finalData = DataProcessor.wordArray(user_data);
                     Console.WriteLine("Data=" + str);
-                    Broadcast("write Meow");
                     Router(finalData, str);
 
                     client.Close();
