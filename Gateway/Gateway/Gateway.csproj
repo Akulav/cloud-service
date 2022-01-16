@@ -5,6 +5,7 @@
     <StartupObject>Gateway.Program</StartupObject>
     <DebugType>embedded</DebugType>
     <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
+    <Platforms>AnyCPU;x86;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
