@@ -1,5 +1,5 @@
-﻿using System;
-using System.Data.SQLite;
+﻿using Community.CsharpSqlite.SQLiteClient;
+using System;
 using System.IO;
 
 namespace Gateway
@@ -14,71 +14,74 @@ namespace Gateway
             {
                 Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\databases");
 
-                for (int i = 0; i < dbNames.Length-2; i++)
+                for (int i = 0; i < dbNames.Length - 2; i++)
                 {
                     var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[i]);
                     var con = $@"URI=file:{dbName}";
                     File.WriteAllText(dbName, null);
-                    var connection = new SQLiteConnection(con);
+                    var connection = new SqliteConnection(con);
                     connection.Open();
-                    var cmd = new SQLiteCommand(connection)
+                    using (var cmd = connection.CreateCommand())
                     {
-                        CommandText = @"CREATE TABLE data(id INTEGER PRIMARY KEY, errors VARCRHAR(250), ip VARCRHAR(250))"
+                        cmd.CommandText = @"CREATE TABLE data(id INTEGER PRIMARY KEY, errors VARCRHAR(250), ip VARCRHAR(250))";
+                        cmd.ExecuteNonQuery();
                     };
-                    cmd.ExecuteNonQuery();
+
                 }
 
                 var db = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[3]);
                 var connect = $@"URI=file:{db}";
                 File.WriteAllText(db, null);
-                var conn = new SQLiteConnection(connect);
+                var conn = new SqliteConnection(connect);
                 conn.Open();
-                var command = new SQLiteCommand(conn)
+                using (var command = conn.CreateCommand())
                 {
-                    CommandText = @"CREATE TABLE data(id INTEGER PRIMARY KEY, data VARCHAR(250), ip VARCRHAR(250), port VARCRHAR(250))"
+                    command.CommandText = @"CREATE TABLE data(id INTEGER PRIMARY KEY, data VARCHAR(250), ip VARCRHAR(250), port VARCRHAR(250))";
+                    command.ExecuteNonQuery();
                 };
-                command.ExecuteNonQuery();
+
 
                 var db1 = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[4]);
                 var connect1 = $@"URI=file:{db1}";
                 File.WriteAllText(db1, null);
-                var conn1 = new SQLiteConnection(connect1);
+                var conn1 = new SqliteConnection(connect1);
                 conn1.Open();
-                var command1 = new SQLiteCommand(conn1)
+                using (var command1 = conn1.CreateCommand())
                 {
-                    CommandText = @"CREATE TABLE data(id INTEGER PRIMARY KEY, cache VARCHAR(250))"
+                    command1.CommandText = @"CREATE TABLE data(id INTEGER PRIMARY KEY, cache VARCHAR(250))";
+                    command1.ExecuteNonQuery();
                 };
-                command1.ExecuteNonQuery();
+
             }
         }
 
-        public static SQLiteConnection GetDB(string service)
+        public static SqliteConnection GetDB(string service)
         {
             CreateDB();
-            SQLiteConnection connection = null;
+            SqliteConnection connection = null;
             if (service == "user")
             {
                 var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[0]);
-                string connectionString = $@"URI=file:{dbName}"; connection = new SQLiteConnection(connectionString);
+                string connectionString = $@"URI=file:{dbName}"; connection = new SqliteConnection(connectionString);
                 connection.Open();
             }
             else if (service == "data")
             {
                 var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[1]);
-                string connectionString = $@"URI=file:{dbName}"; connection = new SQLiteConnection(connectionString);
+                string connectionString = $@"URI=file:{dbName}"; connection = new SqliteConnection(connectionString);
                 connection.Open();
             }
             else if (service == "cache")
             {
                 var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[2]);
-                string connectionString = $@"URI=file:{dbName}"; connection = new SQLiteConnection(connectionString);
+                string connectionString = $@"URI=file:{dbName}"; connection = new SqliteConnection(connectionString);
                 connection.Open();
             }
 
             else if (service == "replication")
             {
                 var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[3]);
-                string connectionString = $@"URI=file:{dbName}"; connection = new SQLiteConnection(connectionString);
+                string connectionString = $@"URI=file:{dbName}"; connection = new SqliteConnection(connectionString);
                 connection.Open();
             }
 
@@ -86,7 +89,7 @@ namespace Gateway
             {
                 Console.WriteLine("CALLING LOCAL CACHE BACKUP");
                 var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[4]);
-                string connectionString = $@"URI=file:{dbName}"; connection = new SQLiteConnection(connectionString);
+                string connectionString = $@"URI=file:{dbName}"; connection = new SqliteConnection(connectionString);
                 connection.Open();
             }
             return connection;
@@ -94,9 +97,9 @@ namespace Gateway
 
         public static void ProcessRequest(string service, string data_string, bool client)
         {
-            SQLiteConnection connection = GetDB(service);
+            SqliteConnection connection = GetDB(service);
             string query = @"SELECT * FROM data";
-            SQLiteCommand cmd = new SQLiteCommand(query, connection);
+            SqliteCommand cmd = new SqliteCommand(query, connection);
             var i = 1;
         read:
             var Table = cmd.ExecuteReader();
@@ -143,14 +146,14 @@ namespace Gateway
                         if (fails < 3)
                         {
                             string insertquery = $"UPDATE data SET errors = ('{fails + 1}') WHERE id = ('{id}')";
-                            SQLiteCommand cmd3 = new SQLiteCommand(insertquery, connection);
+                            SqliteCommand cmd3 = new SqliteCommand(insertquery, connection);
                             cmd3.ExecuteNonQuery();
                         }
 
                         else
                         {
                             string dropquery = $"DELETE FROM data WHERE id = '{id}'";
-                            SQLiteCommand cmd2 = new SQLiteCommand(dropquery, connection);
+                            SqliteCommand cmd2 = new SqliteCommand(dropquery, connection);
                             cmd2.ExecuteNonQuery();
                             i--;
                         }
@@ -162,39 +165,42 @@ namespace Gateway
             }
         }
 
-        public static void InsertData(SQLiteConnection connection, string id, string ip)
+        public static void InsertData(SqliteConnection connection, string id, string ip)
         {
             try
             {
-                var cmd = new SQLiteCommand(connection)
+                using (var cmd = connection.CreateCommand())
                 {
-                    CommandText = $"INSERT INTO data(id, errors, ip) VALUES('{id}', '0', '{ip}')"
+                    cmd.CommandText = $"INSERT INTO data(id, errors, ip) VALUES('{id}', '0', '{ip}')";
+                    cmd.ExecuteNonQuery();
                 };
-                cmd.ExecuteNonQuery();
+
             }
             catch { }
         }
 
-        public static void InsertDataCache(SQLiteConnection connection, string data)
-        {           
-                var cmd = new SQLiteCommand(connection)
-                {
-                    CommandText = $"INSERT INTO data(cache) VALUES('{data}')"
-                };
-                cmd.ExecuteNonQuery();          
+        public static void InsertDataCache(SqliteConnection connection, string data)
+        {
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = $"INSERT INTO data(cache) VALUES('{data}')";
+                cmd.ExecuteNonQuery();
+            };
+
         }
 
 
 
-        public static void InsertError(SQLiteConnection connection, string data, string ip, string port)
+        public static void InsertError(SqliteConnection connection, string data, string ip, string port)
         {
             try
             {
-                var cmd = new SQLiteCommand(connection)
+                using (var cmd =connection.CreateCommand())
                 {
-                    CommandText = $"INSERT INTO data(data, ip, port) VALUES('{data}', '{ip}', '{port}')"
+                    cmd.CommandText = $"INSERT INTO data(data, ip, port) VALUES('{data}', '{ip}', '{port}')";
+                    cmd.ExecuteNonQuery();
+
                 };
-                cmd.ExecuteNonQuery();
             }
             catch { }
         }

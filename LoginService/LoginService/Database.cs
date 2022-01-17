@@ -1,17 +1,17 @@
 ﻿using System;
-using System.Data.SQLite;
+using Community.CsharpSqlite.SQLiteClient;
 using System.IO;
 
 namespace LoginService
 {
     class Database
     {
-        public static void signup(string username, string password, SQLiteConnection connection)
+        public static void signup(string username, string password, SqliteConnection connection)
         {
 
             string checkuserquery = $"SELECT COUNT(id) FROM data WHERE username = '{username}'";
 
-            SQLiteCommand cmdcheck = new SQLiteCommand(checkuserquery, connection);
+            SqliteCommand cmdcheck = new SqliteCommand(checkuserquery, connection);
             string result = cmdcheck.ExecuteScalar().ToString();
 
             if (result == "1")
@@ -22,51 +22,52 @@ namespace LoginService
             else
             {
                 string insertuserquery = $"INSERT INTO data (username, password) VALUES ('{username}','{password}')";
-                SQLiteCommand cmd = new SQLiteCommand(insertuserquery, connection);
+                SqliteCommand cmd = new SqliteCommand(insertuserquery, connection);
                 cmd.ExecuteNonQuery();
                 Communications.send_response("3","localhost", 130);
             }
 
         }
 
-        public static SQLiteConnection connectDB()
+        public static SqliteConnection connectDB()
         {
-            var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + "login.mdf");
+            var dbName = (Directory.GetCurrentDirectory() + "\\logindatabases" + "\\" + "login.mdf");
 
-            if (!Directory.Exists(Directory.GetCurrentDirectory() + "\\databases"))
+            if (!Directory.Exists(Directory.GetCurrentDirectory() + "\\logindatabases"))
             {
-                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\databases");
+                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\logindatabases");
 
 
                 var con = $@"URI=file:{dbName}";
                 File.WriteAllText(dbName, null);
-                var connect = new SQLiteConnection(con);
+                var connect = new SqliteConnection(con);
                 connect.Open();
-                var cmd = new SQLiteCommand(connect)
+                using (var cmd = connect.CreateCommand())
                 {
-                    CommandText = @"CREATE TABLE data(id INTEGER PRIMARY KEY, username VARCRHAR(250), password VARCRHAR(250))"
+                    cmd.CommandText = @"CREATE TABLE data(id INTEGER PRIMARY KEY, username VARCRHAR(250), password VARCRHAR(250))";
+                    cmd.ExecuteNonQuery();
                 };
-                cmd.ExecuteNonQuery();
+                
 
             }
             var conect = $@"URI=file:{dbName}";
-            var connection = new SQLiteConnection(conect);
+            var connection = new SqliteConnection(conect);
             connection.Open();
 
 
             return connection;
         }
 
-        public static void login(string username, string password, string hash , SQLiteConnection connection)
+        public static void login(string username, string password, string hash , SqliteConnection connection)
         {
             string checkloginquery = $"SELECT COUNT(id)FROM data WHERE username = '{username}' AND password = '{password}'";
             string getidquery = $"SELECT id FROM data WHERE username = '{username}' AND password = '{password}'";
 
-            SQLiteCommand cmd = new SQLiteCommand(checkloginquery, connection);        
+            SqliteCommand cmd = new SqliteCommand(checkloginquery, connection);        
             string result = cmd.ExecuteScalar().ToString();
             if (result == "1")
             {
-                SQLiteCommand idget = new SQLiteCommand(getidquery, connection);
+                SqliteCommand idget = new SqliteCommand(getidquery, connection);
                 string id = idget.ExecuteScalar().ToString();
                 Console.WriteLine(id);
                 Communications.send_response("1" +" " + id + " " + hash, "localhost", 130);
@@ -78,7 +79,7 @@ namespace LoginService
             }
         }
 
-        public static void router(string[] data, SQLiteConnection connection)
+        public static void router(string[] data, SqliteConnection connection)
         {
 
             if (data[0] == "signup")

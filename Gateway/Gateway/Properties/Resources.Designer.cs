@@ -69,5 +69,15 @@ namespace Gateway.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] sqlite_interop {
+            get {
+                object obj = ResourceManager.GetObject("sqlite.interop", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Data.SQLite;
+using Community.CsharpSqlite.SQLiteClient;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -28,7 +28,7 @@ namespace LoginService
 
         }
 
-        public static void listen(int port, SQLiteConnection connection)
+        public static void listen(int port, SqliteConnection connection)
         {
             TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
