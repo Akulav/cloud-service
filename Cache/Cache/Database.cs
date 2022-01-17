@@ -1,5 +1,6 @@
-﻿using System;
-using System.Data.SQLite;
+﻿using Community.CsharpSqlite.SQLiteClient;
+using System;
+
 using System.IO;
 
 namespace Cache
@@ -20,25 +21,27 @@ namespace Cache
                     var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[i]);
                     var con = $@"URI=file:{dbName}";
                     File.WriteAllText(dbName, null);
-                    var connection = new SQLiteConnection(con);
+                    var connection = new SqliteConnection(con);
                     connection.Open();
-                    var cmd = new SQLiteCommand(connection)
+                    using (var cmd = connection.CreateCommand())
                     {
-                        CommandText = @"CREATE TABLE data(hash VARCHAR(20), reply VARCHAR(20), id INTEGER)"
+                        cmd.CommandText = @"CREATE TABLE data(hash VARCHAR(20), reply VARCHAR(20), id INTEGER)";
+                        cmd.ExecuteNonQuery();
                     };
-                    cmd.ExecuteNonQuery();
+                    
                 }
 
                 var db = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[3]);
                 var connect = $@"URI=file:{db}";
                 File.WriteAllText(db, null);
-                var conn = new SQLiteConnection(connect);
+                var conn = new SqliteConnection(connect);
                 conn.Open();
-                var command = new SQLiteCommand(conn)
+                using (var command = conn.CreateCommand())
                 {
-                    CommandText = @"CREATE TABLE data(id INTEGER PRIMARY KEY, data VARCHAR(250), ip VARCRHAR(250), port VARCRHAR(250))"
+                    command.CommandText = @"CREATE TABLE data(id INTEGER PRIMARY KEY, data VARCHAR(250), ip VARCRHAR(250), port VARCRHAR(250))";
+                    command.ExecuteNonQuery();
                 };
-                command.ExecuteNonQuery();
+               
 
 
                 try
@@ -87,9 +90,9 @@ namespace Cache
                 {
                     var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[i]);
                     string insertreplyquery = $"INSERT INTO data (reply,hash, id) VALUES ('{processed_reply[0]}','{hash}', '{processed_reply[1]}')";
-                    string connectionString = $@"URI=file:{dbName}"; SQLiteConnection connection = new SQLiteConnection(connectionString);
+                    string connectionString = $@"URI=file:{dbName}"; SqliteConnection connection = new SqliteConnection(connectionString);
                     connection.Open();
-                    SQLiteCommand cmd = new SQLiteCommand(insertreplyquery, connection);
+                    SqliteCommand cmd = new SqliteCommand(insertreplyquery, connection);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -109,9 +112,9 @@ namespace Cache
                 {
                     var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[i]);
                     string insertreplyquery = $"INSERT INTO data (reply,hash, id) VALUES ('{processed_reply[0]}','{hash}', '{processed_reply[2]}')";
-                    string connectionString = $@"URI=file:{dbName}"; SQLiteConnection connection = new SQLiteConnection(connectionString);
+                    string connectionString = $@"URI=file:{dbName}"; SqliteConnection connection = new SqliteConnection(connectionString);
                     connection.Open();
-                    SQLiteCommand cmd = new SQLiteCommand(insertreplyquery, connection);
+                    SqliteCommand cmd = new SqliteCommand(insertreplyquery, connection);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -119,15 +122,16 @@ namespace Cache
 
 
 
-        public static void InsertError(SQLiteConnection connection, string data, string ip, string port)
+        public static void InsertError(SqliteConnection connection, string data, string ip, string port)
         {
             try
             {
-                var cmd = new SQLiteCommand(connection)
+                using (var cmd = connection.CreateCommand())    
                 {
-                    CommandText = $"INSERT INTO data(data, ip, port) VALUES('{data}', '{ip}', '{port}')"
+                    cmd.CommandText = $"INSERT INTO data(data, ip, port) VALUES('{data}', '{ip}', '{port}')";
+                    cmd.ExecuteNonQuery();
+
                 };
-                cmd.ExecuteNonQuery();
             }
             catch { }
         }
@@ -142,18 +146,18 @@ namespace Cache
             Random rnd = new Random();
             int dbIndex = rnd.Next(2);
             var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + dbNames[dbIndex]);
-            string connectionString = $@"URI=file:{dbName}"; SQLiteConnection connection = new SQLiteConnection(connectionString);
+            string connectionString = $@"URI=file:{dbName}"; SqliteConnection connection = new SqliteConnection(connectionString);
             connection.Open();
 
-            SQLiteCommand cmd = new SQLiteCommand(getreplyquery, connection);
+            SqliteCommand cmd = new SqliteCommand(getreplyquery, connection);
             var table = cmd.ExecuteReader();
             table.Read();
             try
             {
                 if (table[0].Equals("1"))
                 {
-                    SQLiteCommand replyget = new SQLiteCommand(getreplyquery, connection);
-                    SQLiteCommand idget = new SQLiteCommand(getidquery, connection);
+                    SqliteCommand replyget = new SqliteCommand(getreplyquery, connection);
+                    SqliteCommand idget = new SqliteCommand(getidquery, connection);
                     string reply = replyget.ExecuteScalar().ToString();
                     string id = idget.ExecuteScalar().ToString();
                     Console.WriteLine(reply + " " + id);

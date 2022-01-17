@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Data.SQLite;
+using Community.CsharpSqlite.SQLiteClient;
 using System.IO;
 using System.Text;
 
@@ -7,7 +7,7 @@ namespace DataService
 {
     class Database
     {
-        public static void router(string[] data, SQLiteConnection connection)
+        public static void router(string[] data, SqliteConnection connection)
         {
             if (data[0] == "connect")
             {
@@ -37,41 +37,42 @@ namespace DataService
                     var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + "data.mdf");
                     var con = $@"URI=file:{dbName}";
                     File.WriteAllText(dbName, null);
-                    var connection = new SQLiteConnection(con);
+                    var connection = new SqliteConnection(con);
                     connection.Open();
-                    var cmd = new SQLiteCommand(connection)
+                    using (var cmd = connection.CreateCommand())
                     {
-                        CommandText = @"CREATE TABLE data(id VARCHAR(250), storage VARCRHAR(250), salt VARCRHAR(250))"
-                    };
+                    cmd.CommandText = @"CREATE TABLE data(id VARCHAR(250), storage VARCRHAR(250), salt VARCRHAR(250))";
                     cmd.ExecuteNonQuery();
+                };
+                    
             }
         }
 
-        public static void connect(string id, SQLiteConnection connection)
+        public static void connect(string id, SqliteConnection connection)
         {
             
             string salt = DataProcessor.RandomString(255);
             string insert_id = $"SELECT Count(id) FROM data WHERE id = '{id}'";
 
-            SQLiteCommand cmd = new SQLiteCommand(insert_id, connection);
+            SqliteCommand cmd = new SqliteCommand(insert_id, connection);
             string result = cmd.ExecuteScalar().ToString();
             Console.WriteLine(result);
 
             if (result == "0")
             {
                 string insertuserquery = $"INSERT INTO data (id, storage, salt) VALUES ('{id}','1','{salt}')";
-                SQLiteCommand insertcmd = new SQLiteCommand(insertuserquery, connection);
+                SqliteCommand insertcmd = new SqliteCommand(insertuserquery, connection);
                 insertcmd.ExecuteNonQuery();
 
                 DataProcessor.initializeDataSet(id);
             }
         }
 
-        public static SQLiteConnection connectDB()
+        public static SqliteConnection connectDB()
         {
             CreateDB();
             var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + "data.mdf");
-            string connectionString = $@"URI=file:{dbName}";SQLiteConnection connection = new SQLiteConnection(connectionString);
+            string connectionString = $@"URI=file:{dbName}";SqliteConnection connection = new SqliteConnection(connectionString);
             connection.Open();
             return connection;
         }

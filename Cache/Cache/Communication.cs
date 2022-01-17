@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Data.SQLite;
+using Community.CsharpSqlite.SQLiteClient;
+
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -83,7 +84,7 @@ namespace Cache
             Console.WriteLine("BACKUP CACHE...");
 
             var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + Database.dbNames[3]);
-            string connectionString = $@"URI=file:{dbName}"; SQLiteConnection connection = new SQLiteConnection(connectionString);
+            string connectionString = $@"URI=file:{dbName}"; SqliteConnection connection = new SqliteConnection(connectionString);
             connection.Open();
 
             try { Send_response(data, "localhost", "15001"); } catch { Database.InsertError(connection, data, "localhost", "15001"); }
@@ -91,11 +92,8 @@ namespace Cache
             try { Send_response(data, "localhost", "15003"); } catch { Database.InsertError(connection, data, "localhost", "15003"); }
 
 
-
-            var read = new SQLiteCommand(connection)
-            {
-                CommandText = @"SELECT * FROM data"
-            };
+            using var read = new SqliteCommand(@"SELECT * FROM data", connection);
+         
 
             var Table = read.ExecuteReader();
 
@@ -105,18 +103,19 @@ namespace Cache
             }
         }
 
-        public static void broadAsync(string id, string data, string ip, string port, SQLiteConnection con)
+        public static void broadAsync(string id, string data, string ip, string port, SqliteConnection con)
         {
             Thread thread = new Thread(delegate ()
             {
                 try
                 {
                     Send_response(data, ip, port);
-                    var delete = new SQLiteCommand(con)
+                    using (var delete =con.CreateCommand())
                     {
-                        CommandText = $"DELETE FROM data WHERE id = '{id}'"
+                        delete.CommandText = $"DELETE FROM data WHERE id = '{id}'";
+                        delete.ExecuteNonQuery();
                     };
-                    delete.ExecuteNonQuery();
+                    
                 }
                 catch { }
             });

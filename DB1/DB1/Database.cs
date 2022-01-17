@@ -1,11 +1,11 @@
-﻿using System.Data.SQLite;
+﻿using Community.CsharpSqlite.SQLiteClient;
 using System.IO;
 
 namespace DB1
 {
     class Database
     {
-        public static SQLiteConnection connectDB()
+        public static SqliteConnection connectDB()
         {
             var dbName = (Directory.GetCurrentDirectory() + "\\databases" + "\\" + "db.mdf");
 
@@ -16,39 +16,37 @@ namespace DB1
 
                 var con = $@"URI=file:{dbName}";
                 File.WriteAllText(dbName, null);
-                var connect = new SQLiteConnection(con);
+                var connect = new SqliteConnection(con);
                 connect.Open();
-                var cmd = new SQLiteCommand(connect)
+                using (var cmd = connect.CreateCommand())
                 {
-                    CommandText = @"CREATE TABLE data(id INTEGER PRIMARY KEY, hash VARCRHAR(250))"
+                    cmd.CommandText = @"CREATE TABLE data(id INTEGER PRIMARY KEY, hash VARCRHAR(250))";
+                    cmd.ExecuteNonQuery();
                 };
-                cmd.ExecuteNonQuery();
+                
 
             }
             var conect = $@"URI=file:{dbName}";
-            var connection = new SQLiteConnection(conect);
+            var connection = new SqliteConnection(conect);
             connection.Open();
 
 
             return connection;
         }
 
-        public static void write(SQLiteConnection connection, string data)
+        public static void write(SqliteConnection connection, string data)
         {
             string insertquery = $"INSERT INTO data (hash) VALUES ('{data}')";
-            SQLiteCommand cmd = new SQLiteCommand(insertquery, connection);
+            SqliteCommand cmd = new SqliteCommand(insertquery, connection);
             cmd.ExecuteNonQuery();
         }       
 
-        public static void router(string[] data, SQLiteConnection connection)
+        public static void router(string[] data, SqliteConnection connection)
         {
-
-
-
             if (data[0] == "read")
             {
                 string readquery = $"SELECT * FROM data";
-                SQLiteCommand cmd = new SQLiteCommand(readquery, connection);
+                SqliteCommand cmd = new SqliteCommand(readquery, connection);
                 var Table = cmd.ExecuteReader();
                 while(Table.Read()){
                     try
@@ -65,9 +63,6 @@ namespace DB1
                 if (data[1].Length > 4) { write(connection, data[0] + " " + data[1] + " " + data[2]); }
                
             }
-
         }
-
-
     }
 }

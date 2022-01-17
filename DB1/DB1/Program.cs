@@ -1,4 +1,4 @@
-﻿using System.Data.SQLite;
+﻿using Community.CsharpSqlite.SQLiteClient;
 
 namespace DB1
 {
@@ -6,7 +6,7 @@ namespace DB1
     {
         static void Main(string[] args)
         {
-            SQLiteConnection connection = Database.connectDB();
+            SqliteConnection connection = Database.connectDB();
             Communications.listen(15002, connection);
         }
     }

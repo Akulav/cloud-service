@@ -1,4 +1,4 @@
-﻿using System.Data.SQLite;
+﻿
 
 namespace Cache
 {

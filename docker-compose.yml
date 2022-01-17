@@ -1,0 +1,39 @@
+version: '3'
+services:
+  gateway:
+    image: gateway
+    ports:
+      - "130:130"
+    networks:
+      - my_transparent
+
+  login:
+    image: login
+    ports:
+      - "13004:13004"
+    networks:
+      - my_transparent
+
+  data:
+    image: data
+    ports:
+      - "1303:1303"
+    networks:
+      - my_transparent 
+
+  cache:
+    image: cache
+    ports:
+      - "70:70"
+    networks:
+      - my_transparent
+
+  db1:
+    image: db1
+    ports:
+      - "15002:15002"
+    networks:
+      - my_transparent
+
+networks:
+  my_transparent:
